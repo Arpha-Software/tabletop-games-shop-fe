@@ -3,7 +3,7 @@ import { Button, Container, ProductCard } from "@/components";
 import { popularConfig } from "@/utils/config";
 
 export const Popular = () => {
-  const { columns, rows, gap, items } = popularConfig;
+  const { items } = popularConfig;
 
   return (
     <Container className='mt-20'>
@@ -18,7 +18,7 @@ export const Popular = () => {
         </div>
       </div>
 
-      <div className={`grid grid-cols-${columns} grid-rows-${rows} justify-center justify-items-center gap-${gap}`}>
+      <div className={`grid grid-cols-5 grid-rows-2 justify-center justify-items-center gap-5`}>
         {items.map(({ title, price, img, href }, index) => (
           <ProductCard
             key={index}
