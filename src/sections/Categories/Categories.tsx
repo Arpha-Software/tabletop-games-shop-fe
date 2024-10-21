@@ -5,7 +5,7 @@ import { Button } from "@/components";
 import { categoriesSectionConfig } from "@/utils/config";
 
 export const Categories = () => {
-  const { columns, rows, gap, title, buttonTitle, items } = categoriesSectionConfig;
+  const { title, buttonTitle, items } = categoriesSectionConfig;
 
   return (
     <Container>
@@ -14,7 +14,7 @@ export const Categories = () => {
         <Button variant="secondary">{buttonTitle}</Button>
       </div>
 
-      <div className={`grid grid-cols-${columns} grid-rows-${rows} gap-${gap}`}>
+      <div className={`grid grid-cols-3 grid-rows-2 gap-4`}>
         {items.map(({ title, img, href, colSpan, rowSpan }, index) => (
           <CategoryCard
             key={index}
