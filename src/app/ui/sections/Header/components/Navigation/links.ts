@@ -1,0 +1,18 @@
+export const links = [
+  {
+    label: 'Каталог',
+    url: '/catalogue'
+  },
+  {
+    label: 'Доставка',
+    url: '/delivery'
+  },
+  {
+    label: 'Блог',
+    url: '/blog'
+  },
+  {
+    label: 'Контакти',
+    url: '/contacts'
+  }
+]
