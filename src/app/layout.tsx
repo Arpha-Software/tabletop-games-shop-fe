@@ -1,16 +1,39 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
+
+import { Header } from "@/app/ui/sections/Header";
+import { Footer } from "@/app/ui/sections/Footer";
+
 import "./globals.css";
 
-const geistSans = localFont({
-  src: "./fonts/GeistVF.woff",
-  variable: "--font-geist-sans",
-  weight: "100 900",
+const avenirNextCyrReg = localFont({
+  src: "./fonts/AvenirNextCyr/AvenirNextCyr-Regular.ttf",
+  variable: "--font-avenir-next-cyr",
+  weight: "400",
 });
-const geistMono = localFont({
-  src: "./fonts/GeistMonoVF.woff",
-  variable: "--font-geist-mono",
-  weight: "100 900",
+
+const avenirNextCyrMed = localFont({
+  src: "./fonts/AvenirNextCyr/AvenirNextCyr-Medium.ttf",
+  variable: "--font-avenir-next-cyr",
+  weight: "500",
+});
+
+const montserratAlternatesBold = localFont({
+  src: "./fonts/MontserratAlternates/MontserratAlternates-Bold.ttf",
+  variable: "--font-monsterrat-alternates",
+  weight: "700",
+});
+
+const monsterratAlternatesReg = localFont({
+  src: "./fonts/MontserratAlternates/MontserratAlternates-Regular.ttf",
+  variable: "--font-monsterrat-alternates",
+  weight: "400",
+});
+
+const montserratAlternatesMed = localFont({
+  src: "./fonts/MontserratAlternates/MontserratAlternates-Medium.ttf",
+  variable: "--font-monsterrat-alternates",
+  weight: "500",
 });
 
 export const metadata: Metadata = {
@@ -20,15 +43,32 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
+  auth,
 }: Readonly<{
   children: React.ReactNode;
+  auth: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="uk" className="h-full">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={
+          `${avenirNextCyrReg.variable}
+          ${avenirNextCyrMed.variable}
+          ${montserratAlternatesBold.variable}
+          ${monsterratAlternatesReg.variable}
+          ${montserratAlternatesMed.variable}
+          antialiased flex flex-col min-h-screen bg-secondary-50`
+        }
       >
-        {children}
+        <>{auth}</>
+
+        <Header />
+
+        <main className="flex-grow">
+          {children}
+        </main>
+
+        <Footer />
       </body>
     </html>
   );

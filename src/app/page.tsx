@@ -1,16 +1,12 @@
-import { Blog } from "@/sections/Blog";
-import { Categories } from "@/sections/Categories";
-import { Footer } from "@/sections/Footer";
-import { Header } from "@/sections/Header";
-import { Intro } from "@/sections/Intro";
-import { Popular } from "@/sections/Popular";
-import { UGonnaNeed } from "@/sections/UGonnaNeed";
+import { Blog } from "@/app/ui/sections/Blog";
+import { Categories } from "@/app/ui/sections/Categories";
+import { Intro } from "@/app/ui/sections/Intro";
+import { Popular } from "@/app/ui/sections/Popular";
+import { UGonnaNeed } from "@/app/ui/sections/UGonnaNeed";
 
 export default function Home() {
   return (
-    <div className="">
-      <Header />
-
+    <>
       <Intro />
 
       <Categories />
@@ -20,8 +16,6 @@ export default function Home() {
       <Popular />
 
       <Blog />
-
-      <Footer />
-    </div>
+    </>
   );
 }

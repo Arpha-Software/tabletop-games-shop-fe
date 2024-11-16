@@ -1,0 +1,16 @@
+.nav-link::after {
+  content: '';
+  display: block;
+  width: 0px;
+  height: 2px;
+  background-color: #00CF67;
+  transition: width 0.3s;
+}
+
+.nav-link:hover::after {
+  width: 100%;
+}
+
+.nav-link:hover {
+  color: #00CF67;
+}
