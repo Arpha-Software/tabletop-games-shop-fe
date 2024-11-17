@@ -149,6 +149,125 @@ export const uGonnaNeedConfig = {
   ]
 }
 
+export const catalogueMock = {
+  items: [
+    {
+      title: 'Cool tabletop “Greenwood”',
+      price: 10000,
+      img: 'https://res.cloudinary.com/dkwve6mul/image/upload/v1729547011/Rectangle_9_shgshw.png',
+      href: '/catalogue/cool-tabletop-greenwood',
+    },
+    {
+      title: 'Cool tabletop “Greenwood”',
+      price: 10000,
+      img: 'https://res.cloudinary.com/dkwve6mul/image/upload/v1729547011/Rectangle_9_shgshw.png',
+      href: '/catalogue/product',
+    },
+    {
+      title: 'Cool tabletop “Greenwood”',
+      price: 10000,
+      img: 'https://res.cloudinary.com/dkwve6mul/image/upload/v1729547011/Rectangle_9_shgshw.png',
+      href: '/catalogue/product-2',
+    },
+    {
+      title: 'Cool tabletop “Greenwood”',
+      price: 10000,
+      img: 'https://res.cloudinary.com/dkwve6mul/image/upload/v1729547011/Rectangle_9_shgshw.png',
+      href: '/catalogue/product-3',
+    },
+    {
+      title: 'Cool tabletop “Greenwood”',
+      price: 10000,
+      img: 'https://res.cloudinary.com/dkwve6mul/image/upload/v1729547011/Rectangle_9_shgshw.png',
+      href: '/catalogue/product-4',
+    },
+    {
+      title: 'Cool tabletop “Greenwood”',
+      price: 10000,
+      img: 'https://res.cloudinary.com/dkwve6mul/image/upload/v1729547011/Rectangle_9_shgshw.png',
+      href: '/catalogue/product-3',
+    },
+    {
+      title: 'Cool tabletop “Greenwood”',
+      price: 10000,
+      img: 'https://res.cloudinary.com/dkwve6mul/image/upload/v1729547011/Rectangle_9_shgshw.png',
+      href: '/catalogue/product-4',
+    },
+    {
+      title: 'Cool tabletop “Greenwood”',
+      price: 10000,
+      img: 'https://res.cloudinary.com/dkwve6mul/image/upload/v1729547011/Rectangle_9_shgshw.png',
+      href: '/catalogue/product-3',
+    },
+    {
+      title: 'Cool tabletop “Greenwood”',
+      price: 10000,
+      img: 'https://res.cloudinary.com/dkwve6mul/image/upload/v1729547011/Rectangle_9_shgshw.png',
+      href: '/catalogue/product-4',
+    },
+    {
+      title: 'Cool tabletop “Greenwood”',
+      price: 10000,
+      img: 'https://res.cloudinary.com/dkwve6mul/image/upload/v1729547011/Rectangle_9_shgshw.png',
+      href: '/catalogue/product-3',
+    },
+    {
+      title: 'Cool tabletop “Greenwood”',
+      price: 10000,
+      img: 'https://res.cloudinary.com/dkwve6mul/image/upload/v1729547011/Rectangle_9_shgshw.png',
+      href: '/catalogue/product-4',
+    },
+    {
+      title: 'Cool tabletop “Greenwood”',
+      price: 10000,
+      img: 'https://res.cloudinary.com/dkwve6mul/image/upload/v1729547011/Rectangle_9_shgshw.png',
+      href: '/catalogue/product-3',
+    },
+    {
+      title: 'Cool tabletop “Greenwood”',
+      price: 10000,
+      img: 'https://res.cloudinary.com/dkwve6mul/image/upload/v1729547011/Rectangle_9_shgshw.png',
+      href: '/catalogue/product-4',
+    },
+    {
+      title: 'Cool tabletop “Greenwood”',
+      price: 10000,
+      img: 'https://res.cloudinary.com/dkwve6mul/image/upload/v1729547011/Rectangle_9_shgshw.png',
+      href: '/catalogue/product-3',
+    },
+    {
+      title: 'Cool tabletop “Greenwood”',
+      price: 10000,
+      img: 'https://res.cloudinary.com/dkwve6mul/image/upload/v1729547011/Rectangle_9_shgshw.png',
+      href: '/catalogue/product-4',
+    },
+    {
+      title: 'Cool tabletop “Greenwood”',
+      price: 10000,
+      img: 'https://res.cloudinary.com/dkwve6mul/image/upload/v1729547011/Rectangle_9_shgshw.png',
+      href: '/catalogue/product-3',
+    },
+    {
+      title: 'Cool tabletop “Greenwood”',
+      price: 10000,
+      img: 'https://res.cloudinary.com/dkwve6mul/image/upload/v1729547011/Rectangle_9_shgshw.png',
+      href: '/catalogue/product-4',
+    },
+    {
+      title: 'Cool tabletop “Greenwood”',
+      price: 10000,
+      img: 'https://res.cloudinary.com/dkwve6mul/image/upload/v1729547011/Rectangle_9_shgshw.png',
+      href: '/catalogue/product-3',
+    },
+    {
+      title: 'Cool tabletop “Greenwood”',
+      price: 10000,
+      img: 'https://res.cloudinary.com/dkwve6mul/image/upload/v1729547011/Rectangle_9_shgshw.png',
+      href: '/catalogue/product-4',
+    },
+  ]
+}
+
 export const popularConfig = {
   columns: 5,
   rows: 2,

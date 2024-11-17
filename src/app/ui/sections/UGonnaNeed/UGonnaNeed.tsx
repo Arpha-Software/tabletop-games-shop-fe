@@ -11,7 +11,7 @@ export const UGonnaNeed = () => {
     <Container className='mt-20'>
       <Text.Header className='mb-10'>Вам це точно знадобиться</Text.Header>
 
-      <div className={`grid grid-cols-5 justify-center justify-items-center gap-5`}>
+      <div className={`w-full grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 justify-center justify-items-center gap-5`}>
         {items.map(({ title, price, img, href }, index) => (
           <ProductCard
             key={index}

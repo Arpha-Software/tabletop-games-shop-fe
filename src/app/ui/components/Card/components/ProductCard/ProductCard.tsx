@@ -19,7 +19,7 @@ export const ProductCard = ({
   className,
 }: TProps) => {
   return (
-    <Link href={href} className={cn("block w-full min-w-60 max-w-72 h-64 bg-secondary-100 shadow-card rounded-lg", className)}>
+    <Link href={href} className={cn("block min-w-52 max-w-72 w-full min-h-64 bg-secondary-100 shadow-card rounded-lg", className)}>
       <Image src={img} alt="product image" width={600} height={600} className="w-full h-40 rounded-lg" />
 
       <div className="flex flex-col gap-2.5 p-3.5">
