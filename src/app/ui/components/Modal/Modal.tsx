@@ -6,28 +6,32 @@ import Image from "next/image";
 
 import { useScrollPrevent } from "@/hooks/useScrollPrevent";
 
-import Arrow from '@/public/arrowleft.svg';
+import { TLoginScreen } from "@/utils/types";
+import { ELoginScreen } from "@/utils/enums";
+
+import Arrow from '@/public/icons/arrowleft.svg';
 
 type ModalProps = {
-  children: (setState: React.Dispatch<React.SetStateAction<boolean>>, showConfirmation: boolean) => React.ReactNode;
+  children: (setScreen: React.Dispatch<React.SetStateAction<TLoginScreen>>, screen: TLoginScreen) => React.ReactNode;
 };
 
 export function Modal({ children }: ModalProps) {
   useScrollPrevent();
 
-  const [showConfirmation, setShowConfirmation] = useState(false); // Internal state
+  const [screen, setScreen] = useState<TLoginScreen>(ELoginScreen.LOGIN);
   const router = useRouter();
 
   const handleBack = () => {
-    if (!showConfirmation) router.back();
-
-
-    if (setShowConfirmation) {
-      setShowConfirmation(false);
-    } else if (window.history.length > 1) {
-      router.back();
+    if (screen === ELoginScreen.CONFIRMATION) {
+      setScreen(ELoginScreen.LOGIN);
+    } else if (screen === ELoginScreen.REGISTER) {
+      setScreen(ELoginScreen.CONFIRMATION);
     } else {
-      router.push('/');
+      if (window.history.length > 1) {
+        router.back();
+      } else {
+        router.push('/');
+      }
     }
   };
 
@@ -41,7 +45,7 @@ export function Modal({ children }: ModalProps) {
           </button>
         </div>
 
-        <div>{children(setShowConfirmation, showConfirmation)}</div>
+        <div>{children(setScreen, screen)}</div>
       </section>
 
       <div className="absolute w-full h-svh z-10 backdrop-blur-sm bg-black/50" />

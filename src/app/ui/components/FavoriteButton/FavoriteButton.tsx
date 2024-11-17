@@ -1,7 +1,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 
-import FavoriteIcon from '@/public/favourite.svg';
+import FavoriteIcon from '@/public/icons/favourite.svg';
 
 export const FavoriteButton = () => {
   return (

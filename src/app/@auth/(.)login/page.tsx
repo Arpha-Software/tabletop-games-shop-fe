@@ -1,13 +1,13 @@
 'use client';
 
-import { LoginPage } from "@/app/login/ui/Login/Login";
 import { Modal } from "@/app/ui/components/Modal";
+import { LoginPage } from "@/app/login/ui/LoginPage";
 
 export default function Page() {
   return (
     <Modal>
-      {(setShowConfirmation, showConfirmation) => (
-        <LoginPage showConfirmation={showConfirmation} setShowConfirmation={setShowConfirmation} />
+      {(setScreen, screen) => (
+        <LoginPage screen={screen} setScreen={setScreen} />
       )}
     </Modal>
   )
