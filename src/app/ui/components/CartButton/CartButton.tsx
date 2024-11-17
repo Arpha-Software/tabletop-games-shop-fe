@@ -1,7 +1,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 
-import CartIcon from '@/public/cart.svg';
+import CartIcon from '@/public/icons/cart.svg';
 
 export const CartButton = () => {
   return (

@@ -3,6 +3,8 @@ export { Search } from './Search';
 export { CartButton } from './CartButton';
 export { ProfileButton } from './ProfileButton';
 export { FavoriteButton } from './FavoriteButton';
+export { Separator } from './Separator';
+
 export { Logo } from './Logo';
 
 export { IntroCard } from './Card/components/IntroCard';

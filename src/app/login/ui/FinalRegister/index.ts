@@ -1,0 +1,1 @@
+export { FinalRegister } from './FinalRegister';

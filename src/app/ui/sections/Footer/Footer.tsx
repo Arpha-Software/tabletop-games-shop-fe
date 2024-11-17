@@ -1,11 +1,11 @@
 import Image from 'next/image';
+import Link from 'next/link';
 
 import { Container, Logo } from '@/app/ui/components';
 
-import TelegramIcon from '@/public/telegram.svg';
-import InstagramIcon from '@/public/instagram.svg';
-import TwitterIcon from '@/public/twitter.svg';
-import Link from 'next/link';
+import TelegramIcon from '@/public/icons/telegram.svg';
+import InstagramIcon from '@/public/icons/instagram.svg';
+import TwitterIcon from '@/public/icons/twitter.svg';
 
 export const Footer = () => {
   const socials = [

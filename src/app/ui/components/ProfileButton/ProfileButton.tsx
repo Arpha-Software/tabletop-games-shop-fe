@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 
-import ProfileIcon from "@/public/profile.svg"
+import ProfileIcon from "@/public/icons/profile.svg"
 
 export const ProfileButton = () => {
   return (
