@@ -4,7 +4,7 @@ import zod from 'zod';
 
 import { permanentRedirect, redirect } from 'next/navigation'
 import { cookies } from 'next/headers';
-import { createSession } from './lib/session';
+import { createSession } from '../lib/session';
 
 const phoneNumberSchema = zod.string()
   .refine(value => /^\+380\d{9}$/.test(value), { message: 'Номер введено неправильно!' })
@@ -148,10 +148,39 @@ export const changeUserInfo = async (data: any) => {
   }
 }
 
-
 export async function signup({ accessToken, accessTokenExpirationDate }: any) {
   const expirationDate = new Date(accessTokenExpirationDate);
   await createSession(accessToken, expirationDate);
 
   redirect('/profile');
+}
+
+export const getCurrentUser = async () => {
+  try {
+    const authToken = cookies().get('authToken')?.value;
+
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/users/me`, {
+      headers: {
+        "Authorization": `Bearer ${authToken}`,
+      }
+    });
+
+    if (!response.ok) {
+      return {
+        success: false,
+        errors: ['Failed to fetch'],
+        data: null,
+      };
+    }
+
+    const data = await response.json();
+
+    return {
+      success: true,
+      errors: [],
+      data,
+    };
+  } catch (error: any) {
+    return { success: false, errors: [error.message] };
+  }
 }

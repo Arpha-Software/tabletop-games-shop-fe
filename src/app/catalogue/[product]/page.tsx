@@ -6,7 +6,7 @@ export default function Product(params: any) {
 
   return (
     <Container>
-      <ProductIntro product={chosenProduct} />
+      <ProductIntro productId={chosenProduct} />
     </Container>
   );
 }

@@ -1,25 +1,88 @@
+'use client';
+
+import { createCategory, getAllCategories } from '@/app/actions/categories';
+import { createGenre, getAllGenres } from '@/app/actions/genres';
+import { createProduct } from '@/app/actions/products';
 import { Button, Input } from '@/app/ui/components';
-import { useState } from 'react';
-import { createPortal } from 'react-dom';
+import { useEffect, useState } from 'react';
+import { createPortal, useFormState } from 'react-dom';
 
 type TProps = {
   isOpen: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
+type TCategory = {
+  id: number;
+  name: string;
+}
+
+type TGenre = {
+  id: number;
+  name: string;
+}
+
+const initialState = {
+  success: false,
+  errors: [],
+};
+
 export const Sidebar = ({ isOpen, setOpen }: TProps) => {
-  const [categories, setCategories] = useState<string[]>([]);
-  const [genres, setGenres] = useState<string[]>([]);
+  const [categories, setCategories] = useState<TCategory[]>([]);
+  const [genres, setGenres] = useState<TGenre[]>([]);
+  const [oldGenres, setOldGenres] = useState<TGenre[]>([]);
+  const [oldCategories, setOldCategories] = useState<TCategory[]>([]);
+  const [newCategories, setNewCategories] = useState<TCategory[]>([]);
+  const [newGenres, setNewGenres] = useState<TGenre[]>([]);
   const [newCategory, setNewCategory] = useState<string>('');
   const [newGenre, setNewGenre] = useState<string>('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [selectedGenre, setSelectedGenre] = useState<string>('');
   const [images, setImages] = useState<File[]>([]);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
 
+  const [productData, setProductData] = useState({
+    name: '',
+    type: '',
+    playerNumber: 0,
+    quantity: 0,
+    playTime: 0,
+    description: '',
+    price: 0,
+    rulesLink: '',
+  });
+
+  const [state, formCreateAction] = useFormState(() => createProduct({...productData, selectedCategory, selectedGenre }), initialState)
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      const categories = await getAllCategories();
+      console.log('CATEGORIES', categories);
+      if (categories.success) {
+        setOldCategories(categories.data.content);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
+  useEffect(() => {
+    const fetchGenres = async () => {
+      const genres = await getAllGenres();
+      console.log('GENRES', genres);
+      if (genres.success) {
+        setOldGenres(genres.data.content);
+      }
+    };
+
+    fetchGenres();
+  }, []);
+
   if (!isOpen) return null;
 
-  const handleAddItem = (item: string, setItem: React.Dispatch<React.SetStateAction<string>>, setList: React.Dispatch<React.SetStateAction<string[]>>) => {
+  const handleAddItem = (item: string, setItem: React.Dispatch<React.SetStateAction<string>>, setList: React.Dispatch<React.SetStateAction<any[]>>) => {
     if (item.trim()) {
-      setList((prevList) => [...prevList, item]);
+      setList((prevList) => [...prevList, { id: prevList.length + 1, name: item }]);
       setItem('');
     }
   };
@@ -30,13 +93,54 @@ export const Sidebar = ({ isOpen, setOpen }: TProps) => {
 
   const closeSidebar = () => {
     setOpen(false);
+  };
+
+  const onProductChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setProductData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
+  };
+
+  const handleCreateProduct = async () => {
+    const newCategoriesNames = newCategories.map((category) => category.name);
+    const newGenresNames = newGenres.map((genre) => genre.name);
+    const oldCategoriesNames = oldCategories.map((category) => category.name);
+    const oldGenresNames = oldGenres.map((genre) => genre.name);
+
+    let responseCategory;
+    let responseGenre;
+    console.log('newCategory', newCategories);
+    console.log('newGenre', newGenres);
+    if (newCategoriesNames.includes(selectedCategory)) {
+      responseCategory = await createCategory({ name: selectedCategory });
+    }
+
+    if (newGenresNames.includes(selectedGenre)) {
+      responseGenre = await createGenre({ name: selectedGenre });
+    }
+
+    if (oldCategoriesNames.includes(selectedCategory)) {
+      responseCategory = { success: true };
+    }
+
+    if (oldGenresNames.includes(selectedGenre)) {
+      responseGenre = { success: true };
+    }
+    console.log('RESPONSES', responseCategory, responseGenre);
+    if (!responseCategory?.success || !responseGenre?.success) return;
+
+    formCreateAction();
+    console.log('STATE', state);
+    if (state.success) setOpen(false);
   }
 
   return (
     <div
       className={`fixed top-0 overflow-auto right-0 h-full w-[500px] z-10 bg-gray-800 transition-transform transform ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
     >
-      <form className="p-5">
+      <form action={handleCreateProduct} className="p-5">
         <div className='flex items-center justify-between mb-10'>
           <h2 className="text-2xl text-white">Додати товар</h2>
           <button
@@ -50,33 +154,51 @@ export const Sidebar = ({ isOpen, setOpen }: TProps) => {
         <ImageUploader images={images} setImages={setImages} maxImages={4} setPreviewImage={setPreviewImage} />
 
         <div className="space-y-2 mt-10">
-          {['Назва товару', 'Тип', 'Кількість гравців', 'Кількість товару', 'Час гри', 'Опис', 'Ціна', 'Посилання на правила'].map((placeholder, index) => (
-            <Input key={index} placeholder={placeholder} className='w-full p-3 rounded-lg border border-gray-700 bg-gray-700 text-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500'/>
+          {[
+            { name: 'name', placeholder: 'Назва товару' },
+            { name: 'type', placeholder: 'Тип' },
+            { name: 'playerNumber', placeholder: 'Кількість гравців' },
+            { name: 'quantity', placeholder: 'Кількість товару' },
+            { name: 'playTime', placeholder: 'Час гри' },
+            { name: 'description', placeholder: 'Опис' },
+            { name: 'price', placeholder: 'Ціна' },
+            { name: 'rulesLink', placeholder: 'Посилання на правила' },
+          ].map(({ name, placeholder }, index) => (
+            <Input
+              key={index}
+              name={name}
+              value={productData[name as keyof typeof productData]}
+              onChange={onProductChange}
+              placeholder={placeholder}
+              className='w-full p-3 rounded-lg border border-gray-700 bg-gray-700 text-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500'
+            />
           ))}
         </div>
 
         <div className="mt-4 space-y-4">
           <CategorySelector
             label="Виберіть категорію"
-            list={categories}
+            list={[...oldCategories, ...newCategories]}
             newItem={newCategory}
             setNewItem={setNewCategory}
-            setList={setCategories}
+            setList={setNewCategories}
             placeholder="Додати нову категорію"
             handleAddItem={handleAddItem}
+            setSelectedItem={setSelectedCategory}
           />
           <CategorySelector
             label="Виберіть жанр"
-            list={genres}
+            list={[...oldGenres, ...newGenres]}
             newItem={newGenre}
             setNewItem={setNewGenre}
-            setList={setGenres}
+            setList={setNewGenres}
             placeholder="Додати новий жанр"
             handleAddItem={handleAddItem}
+            setSelectedItem={setSelectedGenre}
           />
         </div>
 
-        <Button className="mt-4 w-full" variant="primary">Створити товар</Button>
+        <Button className="mt-4 w-full" variant="primary" type='submit'>Створити товар</Button>
       </form>
       {previewImage && createPortal(
         <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-20">
@@ -97,29 +219,35 @@ export const Sidebar = ({ isOpen, setOpen }: TProps) => {
   );
 };
 
-export const CategorySelector = ({ label, list, newItem, setNewItem, setList, placeholder, handleAddItem }: any) => (
-  <div>
-    <label className="text-white mb-2 block">{label}</label>
-    {list.length > 0 && (
-      <select className="w-full p-2 rounded bg-gray-700 text-white mb-2">
-        {list.map((item: string, idx: number) => (
-          <option key={idx} value={item}>{item}</option>
-        ))}
-      </select>
-    )}
-    <div className="flex flex-col space-y-2">
-      <Input
-        placeholder={placeholder}
-        value={newItem}
-        onChange={(e) => setNewItem(e.target.value)}
-        className="w-full p-3 rounded-lg border border-gray-700 bg-gray-700 text-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
-      />
-      <Button onClick={() => handleAddItem(newItem, setNewItem, setList)} variant="secondary" className='w-full text-white'>
-        Додати
-      </Button>
+export const CategorySelector = ({ label, list, newItem, setNewItem, setList, placeholder, handleAddItem, setSelectedItem }: any) => {
+  const onChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedItem(e.target.value);
+  }
+
+  return (
+    <div>
+      <label className="text-white mb-2 block">{label}</label>
+      {list.length > 0 && (
+        <select className="w-full p-2 rounded bg-gray-700 text-white mb-2" onChange={onChange}>
+          {list.map((item: TCategory, idx: number) => (
+            <option key={idx} value={item.name}>{item.name}</option>
+          ))}
+        </select>
+      )}
+      <div className="flex flex-col space-y-2">
+        <Input
+          placeholder={placeholder}
+          value={newItem}
+          onChange={(e) => setNewItem(e.target.value)}
+          className="w-full p-3 rounded-lg border border-gray-700 bg-gray-700 text-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+        />
+        <Button onClick={() => handleAddItem(newItem, setNewItem, setList)} variant="secondary" className='w-full text-white'>
+          Додати
+        </Button>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 export const ImageUploader = ({ images, setImages, maxImages, setPreviewImage }: any) => {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {

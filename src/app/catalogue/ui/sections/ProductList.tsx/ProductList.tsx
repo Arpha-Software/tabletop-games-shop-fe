@@ -1,14 +1,42 @@
 import { ProductCard } from '@/app/ui/components';
 import { Filters } from '../Filters';
 
-import { catalogueMock } from '@/utils/config';
+import { useEffect, useState } from 'react';
+import { getAllProducts } from '@/app/actions/products';
+
+import { TProduct } from '@/utils/types';
+import { Loader } from '@/app/ui/components/Loader';
 
 type TProps = {
   chosenCategory: string;
 }
 
 export const ProductList = ({ chosenCategory }: TProps) => {
-  const { items } = catalogueMock;
+  const [items, setItems] = useState<TProduct[]>([]);
+  const [loading, setLoading] = useState(true);
+  console.log('items', items);
+  useEffect(() => {
+    const fetchItems = async () => {
+      try {
+        const response = await getAllProducts();
+
+        if (!response.success) {
+          return;
+        }
+
+        const data = response.data.content as TProduct[];
+
+        setItems(data);
+        setLoading(false);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchItems();
+  }, []);
 
   return (
     <div className='flex border-y'>
@@ -16,16 +44,19 @@ export const ProductList = ({ chosenCategory }: TProps) => {
         <Filters chosenCategory={chosenCategory} />
       </div>
 
-      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-10'>
-        {items.map(({ title, price, img, href }, index) => (
-            <ProductCard
-              key={index}
-              title={title}
-              price={price}
-              img={img}
-              href={href}
-            />
-          ))}
+      <div className='relative w-full'>
+        {(items.length === 0 && !loading) && <p className='text-center w-full'>No items found</p> }
+        {loading && <Loader className='absolute inset-0' />}
+        {items.length > 0 && !loading && (
+          <div className='w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-10'>
+            {items.map((item, index) => (
+              <ProductCard
+                key={index}
+                item={item}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )

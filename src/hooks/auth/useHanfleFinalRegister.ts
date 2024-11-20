@@ -1,4 +1,4 @@
-import { registerUser } from "@/app/actions";
+import { registerUser } from "@/app/actions/auth";
 import { redirect } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useFormState } from "react-dom";

@@ -1,4 +1,4 @@
-import { verifyUser } from "@/app/actions";
+import { verifyUser } from "@/app/actions/auth";
 import { ELoginScreen } from "@/utils/enums";
 import { TLoginScreen } from "@/utils/types";
 import { useEffect } from "react";

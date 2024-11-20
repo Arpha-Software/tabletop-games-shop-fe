@@ -1,6 +1,6 @@
 'use client';
 
-import { changeUserInfo, logout } from '@/app/actions';
+import { changeUserInfo, logout } from '@/app/actions/auth';
 
 import { Button, Container, Input } from '@/app/ui/components';
 

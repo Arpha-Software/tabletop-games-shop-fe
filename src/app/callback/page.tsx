@@ -1,4 +1,4 @@
-import { signup } from "../actions";
+import { signup } from "../actions/auth";
 import { UserComponent } from "./ui/components/UserComponent";
 
 export default async function Callback({

@@ -15,10 +15,7 @@ export const UGonnaNeed = () => {
         {items.map(({ title, price, img, href }, index) => (
           <ProductCard
             key={index}
-            title={title}
-            price={price}
-            img={img}
-            href={href}
+            item={null}
           />
         ))}
       </div>

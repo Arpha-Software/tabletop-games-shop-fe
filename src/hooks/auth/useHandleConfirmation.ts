@@ -1,4 +1,4 @@
-import { verifyCode } from "@/app/actions";
+import { verifyCode } from "@/app/actions/auth";
 import { useEffect, useState } from "react";
 import { useFormState } from "react-dom";
 import { useTimer } from "../useTimer";

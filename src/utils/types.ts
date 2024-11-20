@@ -10,3 +10,16 @@ export type TUser = {
   phone?: string;
   role: string;
 }
+
+export type TProduct = {
+  id: number;
+  name: string;
+  type: string;
+  playerNumber: number;
+  playTime: number;
+  description: string;
+  price: number;
+  rulesLink: string;
+  categories: string[];
+  genres: string[];
+}
