@@ -5,6 +5,7 @@ import { Header } from "@/app/ui/sections/Header";
 import { Footer } from "@/app/ui/sections/Footer";
 
 import "./globals.css";
+import { UserContextProvider } from "@/context/user/UserContextProvider";
 
 const avenirNextCyrReg = localFont({
   src: "./fonts/AvenirNextCyr/AvenirNextCyr-Regular.ttf",
@@ -60,15 +61,17 @@ export default function RootLayout({
           antialiased flex flex-col min-h-screen bg-secondary-50`
         }
       >
-        <>{auth}</>
+        <UserContextProvider>
+          <>{auth}</>
 
-        <Header />
+          <Header />
 
-        <main className="flex-grow">
-          {children}
-        </main>
+          <main className="flex-grow">
+            {children}
+          </main>
 
-        <Footer />
+          <Footer />
+        </UserContextProvider>
       </body>
     </html>
   );

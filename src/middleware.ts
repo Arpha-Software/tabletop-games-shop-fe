@@ -1,14 +1,32 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 
-export function middleware(request: NextRequest) {
-  const authToken = request.cookies.get('authToken');
+const protectedRoutes = ['/profile', '/favorites']
+const publicRoutes = ['/login']
 
-  if (!authToken?.value) {
-    return NextResponse.redirect(new URL('/login', request.url));
+export default async function middleware(req: NextRequest) {
+  const path = req.nextUrl.pathname;
+
+  const isProtectedRoute = protectedRoutes.includes(path);
+  const isPublicRoute = publicRoutes.includes(path);
+
+  const authToken = (await cookies()).get('authToken')?.value;
+
+  if (isProtectedRoute && !authToken) {
+    return NextResponse.redirect(new URL('/login', req.nextUrl))
   }
+
+  if (
+    isPublicRoute &&
+    authToken &&
+    !req.nextUrl.pathname.startsWith('/profile')
+  ) {
+    return NextResponse.redirect(new URL('/profile', req.nextUrl))
+  }
+
+  return NextResponse.next()
 }
 
 export const config = {
-  matcher: ['/profile', '/favorite'],
+  matcher: ['/((?!api|_next/static|_next/image|.*\\.png$).*)'],
 }
