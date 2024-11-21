@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
+import { Toaster } from 'react-hot-toast';
 
 import { Header } from "@/app/ui/sections/Header";
 import { Footer } from "@/app/ui/sections/Footer";
 
-import "./globals.css";
 import { UserContextProvider } from "@/context/user/UserContextProvider";
+import { ProductsContextProvider } from "@/context/product/ProductsContextProvider";
+
+import "./globals.css";
 
 const avenirNextCyrReg = localFont({
   src: "./fonts/AvenirNextCyr/AvenirNextCyr-Regular.ttf",
@@ -62,15 +65,19 @@ export default function RootLayout({
         }
       >
         <UserContextProvider>
-          <>{auth}</>
+          <ProductsContextProvider>
+            <>{auth}</>
 
-          <Header />
+            <Header />
 
-          <main className="flex-grow">
-            {children}
-          </main>
+            <main className="flex-grow">
+              {children}
+            </main>
 
-          <Footer />
+            <Footer />
+
+            <Toaster />
+          </ProductsContextProvider>
         </UserContextProvider>
       </body>
     </html>

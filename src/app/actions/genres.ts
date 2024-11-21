@@ -49,8 +49,6 @@ export const createGenre = async (data: any) => {
       body: JSON.stringify(data),
     });
 
-    console.log('RESPONSE GENRE', response);
-
     if (!response.ok) {
       return {
         success: false,

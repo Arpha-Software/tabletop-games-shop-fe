@@ -1,10 +1,14 @@
-import { Button, Container, ProductCard } from "@/app/ui/components";
-import { Text } from "@/utils/ui/Text";
-import { popularConfig } from "@/utils/config";
+'use client';
+
 import Link from "next/link";
 
+import { Button, Container, ProductCard } from "@/app/ui/components";
+import { Text } from "@/utils/ui/Text";
+
+import { useProductsContext } from "@/context/product/context";
+
 export const Popular = () => {
-  const { items } = popularConfig;
+  const { products } = useProductsContext();
 
   return (
     <Container className='mt-20'>
@@ -18,11 +22,11 @@ export const Popular = () => {
         </div>
       </div>
 
-      <div className={`grid grid-cols-5 grid-rows-2 justify-center justify-items-center gap-5`}>
-        {items.map(({ title, price, img, href }, index) => (
+      <div className={`grid grid-cols-5 justify-center justify-items-center gap-5`}>
+        {products.slice(0, 5).map((item, index) => (
           <ProductCard
             key={index}
-            item={null}
+            item={item}
           />
         ))}
       </div>

@@ -53,7 +53,7 @@ export const ProductIntro = ({ productId }: TProps) => {
   }, [])
 
   if (loading) {
-    return <Loader className='absolute inset-0 bg-white z-10'/>
+    return <Loader className='bg-white z-10'/>
   }
 
   return (

@@ -37,7 +37,6 @@ export const getAllCategories = async () => {
 }
 
 export const createCategory = async (data: any) => {
-  console.log('DATA', data);
   try {
     const authToken = cookies().get('authToken')?.value;
 
@@ -49,8 +48,6 @@ export const createCategory = async (data: any) => {
       },
       body: JSON.stringify(data),
     });
-
-    console.log('RESPONSE CATEGORY', response);
 
     if (!response.ok) {
       return {

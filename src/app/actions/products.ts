@@ -4,24 +4,16 @@ import { cookies } from "next/headers";
 
 export const createProduct = async (data: any) => {
   try {
-    console.log('DATA', data);
     const authToken = cookies().get('authToken')?.value;
 
-    const product = {
-      ...data,
-      categories: [data.selectedCategory],
-      genres: [data.selectedGenre],
-    }
     const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/products`, {
       method: 'POST',
       headers: {
         "Authorization": `Bearer ${authToken}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(product),
+      body: JSON.stringify(data),
     });
-
-    console.log('RESPONSE', response);
 
     if (!response.ok) {
       return {
@@ -42,11 +34,11 @@ export const createProduct = async (data: any) => {
   }
 }
 
-export const getAllProducts = async () => {
+export const getAllProducts = async (page: number) => {
   try {
     const authToken = cookies().get('authToken')?.value;
 
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/products`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/products?page=${page}`, {
       headers: {
         "Authorization": `Bearer ${authToken}`,
       }
@@ -85,7 +77,7 @@ export const getProductById = async (id: string) => {
         "Authorization": `Bearer ${authToken}`,
       }
     });
-    console.log('RESPONSE', response);
+
     if (!response.ok) {
       return {
         success: false,

@@ -1,42 +1,20 @@
+'use client';
+
 import { ProductCard } from '@/app/ui/components';
+import { Loader } from '@/app/ui/components/Loader';
+import { Pagination } from '@/app/ui/components/Pagination';
 import { Filters } from '../Filters';
 
-import { useEffect, useState } from 'react';
-import { getAllProducts } from '@/app/actions/products';
-
-import { TProduct } from '@/utils/types';
-import { Loader } from '@/app/ui/components/Loader';
+import { useProductsContext } from '@/context/product/context';
+import { usePagination } from '@/hooks/usePagination';
 
 type TProps = {
   chosenCategory: string;
 }
 
 export const ProductList = ({ chosenCategory }: TProps) => {
-  const [items, setItems] = useState<TProduct[]>([]);
-  const [loading, setLoading] = useState(true);
-  console.log('items', items);
-  useEffect(() => {
-    const fetchItems = async () => {
-      try {
-        const response = await getAllProducts();
-
-        if (!response.success) {
-          return;
-        }
-
-        const data = response.data.content as TProduct[];
-
-        setItems(data);
-        setLoading(false);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchItems();
-  }, []);
+  const { products, pageable, totalPages, loading, changePage } = useProductsContext();
+  const { currentPage, handlePageChange } = usePagination(pageable, changePage);
 
   return (
     <div className='flex border-y'>
@@ -45,16 +23,29 @@ export const ProductList = ({ chosenCategory }: TProps) => {
       </div>
 
       <div className='relative w-full'>
-        {(items.length === 0 && !loading) && <p className='text-center w-full'>No items found</p> }
-        {loading && <Loader className='absolute inset-0' />}
-        {items.length > 0 && !loading && (
-          <div className='w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-10'>
-            {items.map((item, index) => (
-              <ProductCard
-                key={index}
-                item={item}
+        {(products.length === 0 && !loading) && <p className='text-center w-full'>No items found</p>}
+
+        {loading && <Loader />}
+
+        {products.length > 0 && !loading && (
+          <div className='flex h-full flex-col justify-between'>
+            <div className='w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-10'>
+              {products.map((item, index) => (
+                <ProductCard
+                  key={index}
+                  item={item}
+                />
+              ))}
+            </div>
+
+            {totalPages > 1 ? (
+              <Pagination
+                className='mb-10'
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
               />
-            ))}
+            ) : null}
           </div>
         )}
       </div>

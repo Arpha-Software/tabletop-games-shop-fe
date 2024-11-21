@@ -2,6 +2,15 @@ export type TTitlePosition = 'top' | 'bottom';
 
 export type TLoginScreen = 'login' | 'confirmation' | 'register';
 
+export type TPageable = {
+  pageNumber: number,
+  pageSize: number,
+  sort: any[],
+  offset: number,
+  paged: boolean,
+  unpaged: boolean,
+}
+
 export type TUser = {
   id: number;
   firstName: string;
@@ -22,4 +31,14 @@ export type TProduct = {
   rulesLink: string;
   categories: string[];
   genres: string[];
+}
+
+export type TCategory = {
+  id: number;
+  name: string;
+}
+
+export type TGenre = {
+  id: number;
+  name: string;
 }
