@@ -2,6 +2,7 @@ import 'server-only';
 import { cookies } from 'next/headers';
 
 export async function createSession(accessToken: string, expiresAt: any) {
+  console.log('access token', accessToken)
   await cookies().set(
     'authToken',
     accessToken,

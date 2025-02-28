@@ -111,6 +111,23 @@ export const Sidebar = ({ isOpen, setOpen }: TProps) => {
 
       if (!categoryCreated || !genreCreated) return;
 
+
+      const arrayBufferToBase64 = (buffer: ArrayBuffer) => {
+        let binary = '';
+        const bytes = new Uint8Array(buffer);
+        for (let i = 0; i < bytes.byteLength; i++) {
+          binary += String.fromCharCode(bytes[i]);
+        }
+        return btoa(binary);
+      };
+
+      const imagesBase64 = await Promise.all(
+        images.map(async (image) => {
+          const buffer = await image.arrayBuffer();
+          return arrayBufferToBase64(buffer);
+        })
+      );
+
       const product = {
         ...productData,
         playerNumber: Number(productData.playerNumber),
@@ -119,8 +136,9 @@ export const Sidebar = ({ isOpen, setOpen }: TProps) => {
         price: Number(productData.price),
         categories: [selectedCategory],
         genres: [selectedGenre],
+        imagesBase64,
       };
-
+      console.log('images', imagesBase64)
       const result = await createProduct(product);
 
       if (result.success) {

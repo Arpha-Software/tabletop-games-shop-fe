@@ -126,7 +126,7 @@ export const changeUserInfo = async (data: any) => {
   try {
     const authToken = cookies().get('authToken')?.value;
 
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/users/${data.id}`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/api/v1/users/${data.id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -149,6 +149,7 @@ export const changeUserInfo = async (data: any) => {
 }
 
 export async function signup({ accessToken, accessTokenExpirationDate }: any) {
+  console.log('SIGNUP', accessToken)
   const expirationDate = new Date(accessTokenExpirationDate);
   await createSession(accessToken, expirationDate);
 
@@ -159,7 +160,7 @@ export const getCurrentUser = async () => {
   try {
     const authToken = cookies().get('authToken')?.value;
 
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/users/me`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/api/v1/users/me`, {
       headers: {
         "Authorization": `Bearer ${authToken}`,
       }

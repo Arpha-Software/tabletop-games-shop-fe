@@ -20,9 +20,9 @@ export const UserComponent = (props: TProps) => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/users/${props.user.id}`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/api/v1/users/${props.user.id}`, {
           headers: {
-            "Authorization": `Bearer eyJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJ0YWJsZXRvcC1nYW1lcy1zaG9wIiwic3ViIjoicG9saXZrYWFyc2VuQGdtYWlsLmNvbSIsImlhdCI6MTczMTk3NDU5NCwiZXhwIjoxNzM5MTc0NTk0fQ.WM1UAPYopSP2QJJy5A9diIpDZU2k6ObC08PcfDObkdCh7DWb57K-DrLNJv2btt1XIUIBVUXpNPL2X_jQZhnCLQ`,
+            "Authorization": `Bearer ${props.accessToken}`,
           }
         });
         const data = await response.json();

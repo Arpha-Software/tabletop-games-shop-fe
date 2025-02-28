@@ -6,7 +6,7 @@ export const getAllCategories = async () => {
   try {
     const authToken = cookies().get('authToken')?.value;
 
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/categories`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/api/v1/categories`, {
       headers: {
         "Authorization": `Bearer ${authToken}`,
       }
@@ -40,7 +40,7 @@ export const createCategory = async (data: any) => {
   try {
     const authToken = cookies().get('authToken')?.value;
 
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/categories`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/api/v1/categories`, {
       method: 'POST',
       headers: {
         "Authorization": `Bearer ${authToken}`,

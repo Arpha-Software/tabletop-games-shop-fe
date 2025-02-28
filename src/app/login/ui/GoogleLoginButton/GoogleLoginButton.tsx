@@ -3,8 +3,10 @@ import { Button } from "@/app/ui/components";
 import GoogleIcon from '@/public/icons/google.svg';
 
 export const GoogleLoginButton = () => {
+  const oAuthUrl = `${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/oauth2/authorization/google`;
+
   const handleLogin = async () => {
-    window.open(process.env.NEXT_PUBLIC_BASE_SERVER_URL, '_blank');
+    window.open(oAuthUrl, '_blank');
   };
 
   return (

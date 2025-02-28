@@ -7,18 +7,16 @@ import { Rating } from '../../components/Rating';
 import { Price } from '../../components/Price';
 import { Description } from '../../components/Description';
 import { ControlButtons } from '../../components/ControlButtons';
-import { useEffect, useState } from 'react';
-import { getProductById } from '@/app/actions/products';
-import { TProduct } from '@/utils/types';
 import { Loader } from '@/app/ui/components/Loader';
+import { useFetchProduct } from '@/hooks/product/useFetchProduct';
+import { Container } from '@/app/ui/components';
 
 type TProps = {
   productId: string;
 }
 
 export const ProductIntro = ({ productId }: TProps) => {
-  const [product, setProduct] = useState<TProduct | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { product, loading } = useFetchProduct(productId);
 
   const categoryId = product?.categories[0].split(' ').join("_").toLowerCase() || '';
   const category = product?.categories[0] || '';
@@ -30,34 +28,12 @@ export const ProductIntro = ({ productId }: TProps) => {
     { href: `/catalogue/${productId}`, label: product?.name || '' }
   ]
 
-  useEffect(() => {
-    const fetchProduct = async () => {
-      try {
-        const response = await getProductById(productId);
-
-        if (!response.success) {
-          return;
-        }
-
-        const data = response.data;
-
-        setProduct(data);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchProduct();
-  }, [])
-
   if (loading) {
     return <Loader className='bg-white z-10'/>
   }
 
   return (
-    <div className='flex justify-between'>
+    <Container className='lg:flex justify-between'>
       <Gallery images={["https://via.placeholder.com/1440", "https://via.placeholder.com/512", "https://via.placeholder.com/512", "https://via.placeholder.com/512"]} />
 
       <section className='flex flex-col justify-between w-full pl-10'>
@@ -67,13 +43,13 @@ export const ProductIntro = ({ productId }: TProps) => {
           <Rating rating={1.7} className='mt-2' />
           <Price price={product?.price || 0} className='mt-6' />
           <Description
-            text={product?.description || ''}
+            text={product?.description.slice(0, 200) + '...' || ''}
             className='mt-6'
           />
         </div>
 
         <ControlButtons className='mt-6' />
       </section>
-    </div>
+    </Container>
   )
 }

@@ -6,7 +6,7 @@ export const getAllGenres = async () => {
   try {
     const authToken = cookies().get('authToken')?.value;
 
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/genres`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/api/v1/genres`, {
       headers: {
         "Authorization": `Bearer ${authToken}`,
       }
@@ -40,7 +40,7 @@ export const createGenre = async (data: any) => {
   try {
     const authToken = cookies().get('authToken')?.value;
 
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/genres`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/api/v1/genres`, {
       method: 'POST',
       headers: {
         "Authorization": `Bearer ${authToken}`,
