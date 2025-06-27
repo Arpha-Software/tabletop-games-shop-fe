@@ -18,9 +18,9 @@ export const UserContextProvider = ({ children }: TProps) => {
     const fetchUser = async () => {
       try {
         const response = await getCurrentUser();
-
+        console.log('user', response)
         setUser(response.data);
-        setIsAdmin(response.data.role === EUserRole.ADMIN);
+        setIsAdmin(response.data?.role === EUserRole.ADMIN);
       } catch (error) {
         console.error(error);
       } finally {

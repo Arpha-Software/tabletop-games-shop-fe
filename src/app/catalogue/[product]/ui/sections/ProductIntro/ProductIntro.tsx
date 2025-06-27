@@ -18,37 +18,45 @@ type TProps = {
 export const ProductIntro = ({ productId }: TProps) => {
   const { product, loading } = useFetchProduct(productId);
 
-  const categoryId = product?.categories[0].split(' ').join("_").toLowerCase() || '';
-  const category = product?.categories[0] || '';
+  const categoryId = product?.categories[0]?.split(' ').join("_").toLowerCase() || '';
+  const categoryName = product?.categories[0] || 'Категорія';
+
+  const productName = product?.name || 'Завантаження...';
 
   const links = [
     { href: '/', label: 'Головна' },
     { href: '/catalogue', label: 'Каталог' },
-    { href: `/catalogue?category=${categoryId}`, label: category },
-    { href: `/catalogue/${productId}`, label: product?.name || '' }
-  ]
+    { href: `/catalogue?category=${categoryId}`, label: categoryName },
+    { href: `/catalogue/${productId}`, label: productName }
+  ];
 
   if (loading) {
-    return <Loader className='bg-white z-10'/>
+    return <Container className='h-[50vh] relative'><Loader /></Container>;
+  }
+
+  if (!product) {
+    return <Container><p>Товар не знайдено.</p></Container>;
   }
 
   return (
-    <Container className='lg:flex justify-between'>
-      <Gallery images={["https://via.placeholder.com/1440", "https://via.placeholder.com/512", "https://via.placeholder.com/512", "https://via.placeholder.com/512"]} />
+    <Container className='lg:flex justify-between py-8'>
+      <div className='lg:w-1/2'>
+        <Gallery images={product.imagesLinks || ["https://via.placeholder.com/512x512", "https://via.placeholder.com/150x150", "https://via.placeholder.com/150x150", "https://via.placeholder.com/150x150"]} />
+      </div>
 
-      <section className='flex flex-col justify-between w-full pl-10'>
+      <section className='flex flex-col justify-between lg:w-1/2 lg:pl-10 mt-6 lg:mt-0'>
         <div>
           <Breadcrumbs links={links} />
-          <Title className='mt-10' text={product?.name || ''} />
-          <Rating rating={1.7} className='mt-2' />
-          <Price price={product?.price || 0} className='mt-6' />
+          <Title className='mt-6 mb-2' text={product.name} />
+          <Rating rating={product.rating || 0} className='mt-2' /> {/* Assuming product has a rating property */}
+          <Price price={product.price} className='mt-4 text-3xl' />
           <Description
-            text={product?.description.slice(0, 200) + '...' || ''}
-            className='mt-6'
+            text={(product.description || '').slice(0, 250) + ((product.description || '').length > 250 ? '...' : '')}
+            className='mt-4 text-sm text-gray-700 leading-relaxed'
           />
         </div>
 
-        <ControlButtons className='mt-6' />
+        <ControlButtons className='mt-8' product={product} />
       </section>
     </Container>
   )

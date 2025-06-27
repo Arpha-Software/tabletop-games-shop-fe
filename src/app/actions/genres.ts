@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 
 export const getAllGenres = async () => {
   try {
-    const authToken = cookies().get('authToken')?.value;
+    const authToken = cookies().get('accessToken')?.value;
 
     const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/api/v1/genres`, {
       headers: {
@@ -38,7 +38,7 @@ export const getAllGenres = async () => {
 
 export const createGenre = async (data: any) => {
   try {
-    const authToken = cookies().get('authToken')?.value;
+    const authToken = cookies().get('accessToken')?.value;
 
     const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/api/v1/genres`, {
       method: 'POST',
@@ -67,3 +67,44 @@ export const createGenre = async (data: any) => {
     };
   }
 }
+
+export const deleteGenre = async (genreId: string) => {
+  try {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/genres/${genreId}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      return { success: false, errors: [error.message] };
+    }
+
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, errors: [error.message] };
+  }
+};
+
+export const updateGenre = async (genreId: string, data: { name: string }) => {
+  try {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/genres/${genreId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      return { success: false, errors: [error.message] };
+    }
+
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, errors: [error.message] };
+  }
+};

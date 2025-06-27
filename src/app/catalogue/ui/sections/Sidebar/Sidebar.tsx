@@ -2,6 +2,7 @@
 
 import { Dispatch, SetStateAction, useEffect, useState } from 'react';
 import { createPortal, useFormState } from 'react-dom';
+import { v4 as uuid } from "uuid"
 
 import { createCategory, getAllCategories } from '@/app/actions/categories';
 import { createGenre, getAllGenres } from '@/app/actions/genres';
@@ -10,15 +11,15 @@ import { createProduct } from '@/app/actions/products';
 import { Button, Input } from '@/app/ui/components';
 
 import {
+  ImageWithUUID,
   TCategory,
   TGenre,
-  TProduct,
 } from '@/utils/types';
 import { useFetchCategories } from '@/hooks/product/useFetchCategories';
 import { useFetchGenres } from '@/hooks/product/useFetchGenres';
 import { ImageUploader } from '../../components/ImageUploader';
 import { CategorySelector } from '../../components/CategorySelector';
-import { cn } from '@/utils/helpers';
+import { arrayBufferToBase64, cn } from '@/utils/helpers';
 import toast from 'react-hot-toast';
 
 type TProps = {
@@ -36,8 +37,9 @@ export const Sidebar = ({ isOpen, setOpen }: TProps) => {
   const [newGenre, setNewGenre] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [selectedGenre, setSelectedGenre] = useState<string>('');
-  const [images, setImages] = useState<File[]>([]);
+  const [images, setImages] = useState<ImageWithUUID[]>([]);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [mainImage, setMainImage] = useState<string | null>(null);
 
   const [productData, setProductData] = useState({
     name: '',
@@ -111,20 +113,25 @@ export const Sidebar = ({ isOpen, setOpen }: TProps) => {
 
       if (!categoryCreated || !genreCreated) return;
 
-
-      const arrayBufferToBase64 = (buffer: ArrayBuffer) => {
-        let binary = '';
-        const bytes = new Uint8Array(buffer);
-        for (let i = 0; i < bytes.byteLength; i++) {
-          binary += String.fromCharCode(bytes[i]);
-        }
-        return btoa(binary);
-      };
-
       const imagesBase64 = await Promise.all(
-        images.map(async (image) => {
-          const buffer = await image.arrayBuffer();
-          return arrayBufferToBase64(buffer);
+        images.map(async (image, index) => {
+          const buffer = await image.file.arrayBuffer();
+          return {
+            "id": index,
+            "uuid": image.uuid,
+            "base64": arrayBufferToBase64(buffer),
+          }
+        })
+      );
+
+      const imagesMeta = await Promise.all(
+        images.map((image, index) => {
+          return {
+            "type": image.file.type,
+            "fileSize": image.file.size,
+            "uuid": image.uuid,
+            "isMain": index === 0,
+          }
         })
       );
 
@@ -134,14 +141,21 @@ export const Sidebar = ({ isOpen, setOpen }: TProps) => {
         quantity: Number(productData.quantity),
         playTime: Number(productData.playTime),
         price: Number(productData.price),
+        "productTypeId": 1,
+        "width": 30.5,
+        "length": 30.5,
+        "height": 7,
+        "weight": 1.2,
         categories: [selectedCategory],
         genres: [selectedGenre],
+        fileUploadRequests: imagesMeta,
         imagesBase64,
       };
-      console.log('images', imagesBase64)
+      console.log('images', imagesBase64);
+      console.log('imagesMeta', imagesMeta);
       const result = await createProduct(product);
 
-      if (result.success) {
+      if (result.success) { 
         toast.success('Товар додано успішно!');
         setOpen(false);
       } else {

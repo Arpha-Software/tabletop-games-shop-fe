@@ -12,20 +12,26 @@ export type TPageable = {
 }
 
 export type TUser = {
-  id: number;
+  id: string;
   firstName: string;
-  lastName?: string;
+  lastName: string;
   email: string;
-  phone?: string;
-  role: string;
-}
+  role: 'user' | 'admin';
+  createdAt: string;
+  updatedAt: string;
+};
 
 export type TProduct = {
   id: number;
+  mainImgLink: string | null;
+  imagesLinks?: string[]; // Optional: For product gallery images
+  images?: Array<{ url: string }>; // For product images with URLs
   name: string;
   type: string;
   playerNumber: number;
   playTime: number;
+  quantity: number;
+  rating: number;
   description: string;
   price: number;
   rulesLink: string;
@@ -34,11 +40,45 @@ export type TProduct = {
 }
 
 export type TCategory = {
-  id: number;
+  id: string;
   name: string;
 }
 
 export type TGenre = {
-  id: number;
+  id: string;
   name: string;
 }
+
+export interface ImageWithUUID {
+  file: File;
+  uuid: string;
+}
+
+// Add New Type for Cart Item
+export type TCartItem = TProduct & {
+  quantity: number;
+};
+
+export type TOrder = {
+  id: string;
+  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+  createdAt: string;
+  totalAmount: number;
+  customer: {
+    name: string;
+    email: string;
+    phone: string;
+  };
+  shippingAddress: {
+    street: string;
+    city: string;
+    postalCode: string;
+    country: string;
+  };
+  items: Array<{
+    id: string;
+    name: string;
+    quantity: number;
+    price: number;
+  }>;
+};
