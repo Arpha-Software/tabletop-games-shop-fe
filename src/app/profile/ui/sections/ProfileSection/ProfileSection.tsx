@@ -1,12 +1,10 @@
 'use client';
 
 import { changeUserInfo, logout } from '@/app/actions/auth';
-
 import { Button, Container, Input } from '@/app/ui/components';
-
 import { useUserContext } from '@/context/user/context';
 import { Text } from '@/utils/ui/Text';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useFormState } from 'react-dom';
 
 const initialValue = {
@@ -21,9 +19,17 @@ const initialValue = {
 export const ProfileSection = () => {
   const { user, setUser } = useUserContext();
 
-  const [firstName, setFirstName] = useState(user?.firstName);
-  const [lastName, setLastName] = useState(user?.lastName);
-  const [phone, setPhone] = useState(user?.phone);
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [phone, setPhone] = useState('');
+
+  useEffect(() => {
+    if (user) {
+      setFirstName(user.firstName || '');
+      setLastName(user.lastName || '');
+      setPhone(user.phone || '');
+    }
+  }, [user]);
 
   const [state, formAction] = useFormState(() => changeUserInfo({
     id: user?.id,
@@ -33,9 +39,9 @@ export const ProfileSection = () => {
   }), initialValue);
 
   const handleLogout = async () => {
-    logout();
-    localStorage.removeItem('userId');
+    localStorage.removeItem('authToken');
     setUser(null);
+    await logout();
   }
 
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -117,31 +117,31 @@ export const uGonnaNeedConfig = {
   gap: 5,
   items: [
     {
-      title: 'Cool tabletop “Greenwood”',
+      title: 'Cool tabletop "Greenwood"',
       price: 10000,
       img: 'https://res.cloudinary.com/dkwve6mul/image/upload/v1729547011/Rectangle_9_shgshw.png',
       href: '/catalogue/cool-tabletop-greenwood',
     },
     {
-      title: 'Cool tabletop “Greenwood”',
+      title: 'Cool tabletop "Greenwood"',
       price: 10000,
       img: 'https://res.cloudinary.com/dkwve6mul/image/upload/v1729547011/Rectangle_9_shgshw.png',
       href: '/catalogue/product',
     },
     {
-      title: 'Cool tabletop “Greenwood”',
+      title: 'Cool tabletop "Greenwood"',
       price: 10000,
       img: 'https://res.cloudinary.com/dkwve6mul/image/upload/v1729547011/Rectangle_9_shgshw.png',
       href: '/catalogue/product-2',
     },
     {
-      title: 'Cool tabletop “Greenwood”',
+      title: 'Cool tabletop "Greenwood"',
       price: 10000,
       img: 'https://res.cloudinary.com/dkwve6mul/image/upload/v1729547011/Rectangle_9_shgshw.png',
       href: '/catalogue/product-3',
     },
     {
-      title: 'Cool tabletop “Greenwood”',
+      title: 'Cool tabletop "Greenwood"',
       price: 10000,
       img: 'https://res.cloudinary.com/dkwve6mul/image/upload/v1729547011/Rectangle_9_shgshw.png',
       href: '/catalogue/product-4',
@@ -152,115 +152,115 @@ export const uGonnaNeedConfig = {
 export const catalogueMock = {
   items: [
     {
-      title: 'Cool tabletop “Greenwood”',
+      title: 'Cool tabletop "Greenwood"',
       price: 10000,
       img: 'https://res.cloudinary.com/dkwve6mul/image/upload/v1729547011/Rectangle_9_shgshw.png',
       href: '/catalogue/cool-tabletop-greenwood',
     },
     {
-      title: 'Cool tabletop “Greenwood”',
+      title: 'Cool tabletop "Greenwood"',
       price: 10000,
       img: 'https://res.cloudinary.com/dkwve6mul/image/upload/v1729547011/Rectangle_9_shgshw.png',
       href: '/catalogue/product',
     },
     {
-      title: 'Cool tabletop “Greenwood”',
+      title: 'Cool tabletop "Greenwood"',
       price: 10000,
       img: 'https://res.cloudinary.com/dkwve6mul/image/upload/v1729547011/Rectangle_9_shgshw.png',
       href: '/catalogue/product-2',
     },
     {
-      title: 'Cool tabletop “Greenwood”',
+      title: 'Cool tabletop "Greenwood"',
       price: 10000,
       img: 'https://res.cloudinary.com/dkwve6mul/image/upload/v1729547011/Rectangle_9_shgshw.png',
       href: '/catalogue/product-3',
     },
     {
-      title: 'Cool tabletop “Greenwood”',
+      title: 'Cool tabletop "Greenwood"',
       price: 10000,
       img: 'https://res.cloudinary.com/dkwve6mul/image/upload/v1729547011/Rectangle_9_shgshw.png',
       href: '/catalogue/product-4',
     },
     {
-      title: 'Cool tabletop “Greenwood”',
+      title: 'Cool tabletop "Greenwood"',
       price: 10000,
       img: 'https://res.cloudinary.com/dkwve6mul/image/upload/v1729547011/Rectangle_9_shgshw.png',
       href: '/catalogue/product-3',
     },
     {
-      title: 'Cool tabletop “Greenwood”',
+      title: 'Cool tabletop "Greenwood"',
       price: 10000,
       img: 'https://res.cloudinary.com/dkwve6mul/image/upload/v1729547011/Rectangle_9_shgshw.png',
       href: '/catalogue/product-4',
     },
     {
-      title: 'Cool tabletop “Greenwood”',
+      title: 'Cool tabletop "Greenwood"',
       price: 10000,
       img: 'https://res.cloudinary.com/dkwve6mul/image/upload/v1729547011/Rectangle_9_shgshw.png',
       href: '/catalogue/product-3',
     },
     {
-      title: 'Cool tabletop “Greenwood”',
+      title: 'Cool tabletop "Greenwood"',
       price: 10000,
       img: 'https://res.cloudinary.com/dkwve6mul/image/upload/v1729547011/Rectangle_9_shgshw.png',
       href: '/catalogue/product-4',
     },
     {
-      title: 'Cool tabletop “Greenwood”',
+      title: 'Cool tabletop "Greenwood"',
       price: 10000,
       img: 'https://res.cloudinary.com/dkwve6mul/image/upload/v1729547011/Rectangle_9_shgshw.png',
       href: '/catalogue/product-3',
     },
     {
-      title: 'Cool tabletop “Greenwood”',
+      title: 'Cool tabletop "Greenwood"',
       price: 10000,
       img: 'https://res.cloudinary.com/dkwve6mul/image/upload/v1729547011/Rectangle_9_shgshw.png',
       href: '/catalogue/product-4',
     },
     {
-      title: 'Cool tabletop “Greenwood”',
+      title: 'Cool tabletop "Greenwood"',
       price: 10000,
       img: 'https://res.cloudinary.com/dkwve6mul/image/upload/v1729547011/Rectangle_9_shgshw.png',
       href: '/catalogue/product-3',
     },
     {
-      title: 'Cool tabletop “Greenwood”',
+      title: 'Cool tabletop "Greenwood"',
       price: 10000,
       img: 'https://res.cloudinary.com/dkwve6mul/image/upload/v1729547011/Rectangle_9_shgshw.png',
       href: '/catalogue/product-4',
     },
     {
-      title: 'Cool tabletop “Greenwood”',
+      title: 'Cool tabletop "Greenwood"',
       price: 10000,
       img: 'https://res.cloudinary.com/dkwve6mul/image/upload/v1729547011/Rectangle_9_shgshw.png',
       href: '/catalogue/product-3',
     },
     {
-      title: 'Cool tabletop “Greenwood”',
+      title: 'Cool tabletop "Greenwood"',
       price: 10000,
       img: 'https://res.cloudinary.com/dkwve6mul/image/upload/v1729547011/Rectangle_9_shgshw.png',
       href: '/catalogue/product-4',
     },
     {
-      title: 'Cool tabletop “Greenwood”',
+      title: 'Cool tabletop "Greenwood"',
       price: 10000,
       img: 'https://res.cloudinary.com/dkwve6mul/image/upload/v1729547011/Rectangle_9_shgshw.png',
       href: '/catalogue/product-3',
     },
     {
-      title: 'Cool tabletop “Greenwood”',
+      title: 'Cool tabletop "Greenwood"',
       price: 10000,
       img: 'https://res.cloudinary.com/dkwve6mul/image/upload/v1729547011/Rectangle_9_shgshw.png',
       href: '/catalogue/product-4',
     },
     {
-      title: 'Cool tabletop “Greenwood”',
+      title: 'Cool tabletop "Greenwood"',
       price: 10000,
       img: 'https://res.cloudinary.com/dkwve6mul/image/upload/v1729547011/Rectangle_9_shgshw.png',
       href: '/catalogue/product-3',
     },
     {
-      title: 'Cool tabletop “Greenwood”',
+      title: 'Cool tabletop "Greenwood"',
       price: 10000,
       img: 'https://res.cloudinary.com/dkwve6mul/image/upload/v1729547011/Rectangle_9_shgshw.png',
       href: '/catalogue/product-4',
@@ -274,61 +274,61 @@ export const popularConfig = {
   gap: 5,
   items: [
     {
-      title: 'Cool tabletop “Greenwood”',
+      title: 'Cool tabletop "Greenwood"',
       price: 10000,
       img: 'https://res.cloudinary.com/dkwve6mul/image/upload/v1729547011/Rectangle_9_shgshw.png',
       href: '/catalogue/product-1',
     },
     {
-      title: 'Cool tabletop “Greenwood”',
+      title: 'Cool tabletop "Greenwood"',
       price: 10000,
       img: 'https://res.cloudinary.com/dkwve6mul/image/upload/v1729547011/Rectangle_9_shgshw.png',
       href: '/catalogue/product-2',
     },
     {
-      title: 'Cool tabletop “Greenwood”',
+      title: 'Cool tabletop "Greenwood"',
       price: 10000,
       img: 'https://res.cloudinary.com/dkwve6mul/image/upload/v1729547011/Rectangle_9_shgshw.png',
       href: '/catalogue/product-3',
     },
     {
-      title: 'Cool tabletop “Greenwood”',
+      title: 'Cool tabletop "Greenwood"',
       price: 10000,
       img: 'https://res.cloudinary.com/dkwve6mul/image/upload/v1729547011/Rectangle_9_shgshw.png',
       href: '/catalogue/product-4',
     },
     {
-      title: 'Cool tabletop “Greenwood”',
+      title: 'Cool tabletop "Greenwood"',
       price: 10000,
       img: 'https://res.cloudinary.com/dkwve6mul/image/upload/v1729547011/Rectangle_9_shgshw.png',
       href: '/catalogue/product-5',
     },
     {
-      title: 'Cool tabletop “Greenwood”',
+      title: 'Cool tabletop "Greenwood"',
       price: 10000,
       img: 'https://res.cloudinary.com/dkwve6mul/image/upload/v1729547011/Rectangle_9_shgshw.png',
       href: '/catalogue/product-6',
     },
     {
-      title: 'Cool tabletop “Greenwood”',
+      title: 'Cool tabletop "Greenwood"',
       price: 10000,
       img: 'https://res.cloudinary.com/dkwve6mul/image/upload/v1729547011/Rectangle_9_shgshw.png',
       href: '/catalogue/product-7',
     },
     {
-      title: 'Cool tabletop “Greenwood”',
+      title: 'Cool tabletop "Greenwood"',
       price: 10000,
       img: 'https://res.cloudinary.com/dkwve6mul/image/upload/v1729547011/Rectangle_9_shgshw.png',
       href: '/catalogue/product-8',
     },
     {
-      title: 'Cool tabletop “Greenwood”',
+      title: 'Cool tabletop "Greenwood"',
       price: 10000,
       img: 'https://res.cloudinary.com/dkwve6mul/image/upload/v1729547011/Rectangle_9_shgshw.png',
       href: '/catalogue/product-9',
     },
     {
-      title: 'Cool tabletop “Greenwood”',
+      title: 'Cool tabletop "Greenwood"',
       price: 10000,
       img: 'https://res.cloudinary.com/dkwve6mul/image/upload/v1729547011/Rectangle_9_shgshw.png',
       href: '/catalogue/product-10',
@@ -341,22 +341,99 @@ export const blogConfig = {
   columns: 3,
   items: [
     {
-      title: 'New article with very long title, almost on two lines, maybe even three lines, if it’s needed',
+      title: "New article with very long title, almost on two lines, maybe even three lines, if it's needed",
       date: new Date(),
       img: 'https://res.cloudinary.com/dkwve6mul/image/upload/v1729549837/hannah-busing-f0iHba5bSlQ-unsplash_ph3pm1.jpg',
       href: '/blog/new-article'
     },
     {
-      title: 'New article with very long title, almost on two lines, maybe even three lines, if it’s needed',
+      title: "New article with very long title, almost on two lines, maybe even three lines, if it's needed",
       date: new Date(),
       img: 'https://res.cloudinary.com/dkwve6mul/image/upload/v1729549837/hannah-busing-f0iHba5bSlQ-unsplash_ph3pm1.jpg',
       href: '/blog/new-article-2'
     },
     {
-      title: 'New article with very long title, almost on two lines, maybe even three lines, if it’s needed',
+      title: "New article with very long title, almost on two lines, maybe even three lines, if it's needed",
       date: new Date(),
       img: 'https://res.cloudinary.com/dkwve6mul/image/upload/v1729549837/hannah-busing-f0iHba5bSlQ-unsplash_ph3pm1.jpg',
       href: '/blog/new-article-3'
     }
   ]
 }
+
+export const blogPageConfig = {
+  title: 'Блог',
+  items: [
+    {
+      title: 'Як вибрати ідеальну настільну гру для вашої компанії',
+      date: new Date('2024-01-15'),
+      img: 'https://res.cloudinary.com/dkwve6mul/image/upload/v1729549837/hannah-busing-f0iHba5bSlQ-unsplash_ph3pm1.jpg',
+      href: '/blog/choosing-perfect-board-game',
+      category: 'Поради'
+    },
+    {
+      title: 'Топ-10 настільних ігор для сімейного вечора',
+      date: new Date('2024-01-12'),
+      img: 'https://res.cloudinary.com/dkwve6mul/image/upload/v1729549837/hannah-busing-f0iHba5bSlQ-unsplash_ph3pm1.jpg',
+      href: '/blog/top-10-family-games',
+      category: 'Огляди'
+    },
+    {
+      title: 'Історія настільних ігор: від стародавніх часів до наших днів',
+      date: new Date('2024-01-10'),
+      img: 'https://res.cloudinary.com/dkwve6mul/image/upload/v1729549837/hannah-busing-f0iHba5bSlQ-unsplash_ph3pm1.jpg',
+      href: '/blog/history-board-games',
+      category: 'Історія'
+    },
+    {
+      title: 'Стратегічні ігри: розвиваємо логічне мислення',
+      date: new Date('2024-01-08'),
+      img: 'https://res.cloudinary.com/dkwve6mul/image/upload/v1729549837/hannah-busing-f0iHba5bSlQ-unsplash_ph3pm1.jpg',
+      href: '/blog/strategic-games-logic',
+      category: 'Поради'
+    },
+    {
+      title: 'Новинки 2024: що нового в світі настільних ігор',
+      date: new Date('2024-01-05'),
+      img: 'https://res.cloudinary.com/dkwve6mul/image/upload/v1729549837/hannah-busing-f0iHba5bSlQ-unsplash_ph3pm1.jpg',
+      href: '/blog/new-games-2024',
+      category: 'Новинки'
+    },
+    {
+      title: 'Як організувати турнір з настільних ігор',
+      date: new Date('2024-01-03'),
+      img: 'https://res.cloudinary.com/dkwve6mul/image/upload/v1729549837/hannah-busing-f0iHba5bSlQ-unsplash_ph3pm1.jpg',
+      href: '/blog/organizing-tournament',
+      category: 'Події'
+    },
+    {
+      title: 'Настільні ігри для розвитку дітей: що обрати за віком',
+      date: new Date('2023-12-28'),
+      img: 'https://res.cloudinary.com/dkwve6mul/image/upload/v1729549837/hannah-busing-f0iHba5bSlQ-unsplash_ph3pm1.jpg',
+      href: '/blog/games-for-children',
+      category: 'Поради'
+    },
+    {
+      title: 'Кооперативні ігри: граємо разом замість один проти одного',
+      date: new Date('2023-12-25'),
+      img: 'https://res.cloudinary.com/dkwve6mul/image/upload/v1729549837/hannah-busing-f0iHba5bSlQ-unsplash_ph3pm1.jpg',
+      href: '/blog/cooperative-games',
+      category: 'Огляди'
+    },
+    {
+      title: 'Як зберігати та доглядати за настільними іграми',
+      date: new Date('2023-12-22'),
+      img: 'https://res.cloudinary.com/dkwve6mul/image/upload/v1729549837/hannah-busing-f0iHba5bSlQ-unsplash_ph3pm1.jpg',
+      href: '/blog/caring-board-games',
+      category: 'Поради'
+    }
+  ],
+  categories: [
+    'Всі',
+    'Поради',
+    'Огляди',
+    'Новинки',
+    'Історія',
+    'Події'
+  ]
+};

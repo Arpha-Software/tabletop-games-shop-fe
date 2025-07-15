@@ -1,46 +1,57 @@
-'use server';
+// This code should be added to your client-side API file, e.g., src/lib/api.ts
 
-import { cookies } from "next/headers";
+// A helper function to safely get the token from localStorage on the client-side
+const getAuthToken = (): string | null => {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+  return localStorage.getItem('authToken');
+};
+
+// --- CATEGORY API FUNCTIONS ---
 
 export const getAllCategories = async () => {
-  try {
-    const authToken = cookies().get('authToken')?.value;
+  const authToken = getAuthToken();
+  const headers: HeadersInit = {
+    "Content-Type": "application/json",
+  };
+  if (authToken) {
+    headers["Authorization"] = `Bearer ${authToken}`;
+  }
 
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/categories`, {
-      headers: {
-        "Authorization": `Bearer ${authToken}`,
-      }
+  try {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/api/v1/categories`, {
+      headers,
     });
 
     if (!response.ok) {
-      return {
-        success: false,
-        errors: ['Failed to fetch'],
-        data: null,
-      };
+      throw new Error('Failed to fetch categories');
     }
 
     const data = await response.json();
-
     return {
       success: true,
       errors: [],
       data,
     };
   } catch (error: any) {
+    console.error("Get All Categories Error:", error);
     return {
       success: false,
       errors: [error.message],
-      data: null,
+      data: { content: [] }, // Provide a default empty array
     };
   }
-}
+};
 
 export const createCategory = async (data: any) => {
   try {
-    const authToken = cookies().get('authToken')?.value;
+    const authToken = getAuthToken();
+    if (!authToken) {
+      throw new Error('You must be logged in to create a category.');
+    }
 
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/categories`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/api/v1/categories`, {
       method: 'POST',
       headers: {
         "Authorization": `Bearer ${authToken}`,
@@ -50,10 +61,8 @@ export const createCategory = async (data: any) => {
     });
 
     if (!response.ok) {
-      return {
-        success: false,
-        errors: ['Failed to fetch'],
-      };
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to create category');
     }
 
     return {
@@ -61,9 +70,10 @@ export const createCategory = async (data: any) => {
       errors: [],
     };
   } catch (error: any) {
+    console.error("Create Category Error:", error);
     return {
       success: false,
       errors: [error.message],
     };
   }
-}
+};
