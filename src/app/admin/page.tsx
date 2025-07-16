@@ -3,10 +3,11 @@
 import { useState } from 'react';
 import { Container, Button } from '@/app/ui/components';
 import { Text } from '@/utils/ui/Text';
-import { ProductsTab, GenresTab, CategoriesTab, OrdersTab, UsersTab } from './ui/components';
+import { ProductsTab, GenresTab, CategoriesTab, OrdersTab, UsersTab, ProductTypesTab } from './ui/components';
 
 const TABS = [
   { key: 'products', label: 'Товари' },
+  { key: 'productTypes', label: 'Типи товарів' },
   { key: 'genres', label: 'Жанри' },
   { key: 'categories', label: 'Категорії' },
   { key: 'orders', label: 'Замовлення' },
@@ -20,6 +21,8 @@ export default function AdminPanel() {
     switch (activeTab) {
       case 'products':
         return <ProductsTab />;
+      case 'productTypes':
+        return <ProductTypesTab />;
       case 'genres':
         return <GenresTab />;
       case 'categories':
