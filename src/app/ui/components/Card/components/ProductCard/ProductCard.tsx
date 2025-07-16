@@ -21,7 +21,13 @@ export const ProductCard = ({
 
   return (
     <Link href={`/catalogue/${id}`} className={cn("block min-w-52 max-w-72 w-full min-h-64 max-h-72 bg-secondary-100 shadow-card rounded-lg", className)}>
-      <Image src={'https://res.cloudinary.com/dkwve6mul/image/upload/v1729547011/Rectangle_9_shgshw.png'} alt="product image" width={600} height={600} className="w-full h-40 rounded-lg" />
+      <Image 
+        src={item.mainImgLink || (item.productPhotos && item.productPhotos.length > 0 ? item.productPhotos[0] : 'https://res.cloudinary.com/dkwve6mul/image/upload/v1729547011/Rectangle_9_shgshw.png')} 
+        alt={name} 
+        width={600} 
+        height={600} 
+        className="w-full h-40 rounded-lg object-cover" 
+      />
 
       <div className="flex flex-col gap-2.5 p-3.5">
         <p>{name}</p>

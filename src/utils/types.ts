@@ -23,14 +23,30 @@ export type TUser = {
 export type TProduct = {
   id: number;
   name: string;
-  type: string;
+  type: {
+    id: number;
+    name: string;
+    dimension: {
+      width: number;
+      weight: number;
+      length: number;
+      height: number;
+    };
+  };
   playerNumber: number;
   playTime: number;
   description: string;
   price: number;
   rulesLink: string;
+  width: number;
+  height: number;
+  length: number;
+  weight: number;
+  quantity: number;
+  mainImgLink: string;
   categories: string[];
   genres: string[];
+  productPhotos: string[];
 }
 
 export type TCategory = {
@@ -41,4 +57,15 @@ export type TCategory = {
 export type TGenre = {
   id: number;
   name: string;
+}
+
+export type TProductType = {
+  id: number;
+  name: string;
+  dimension: {
+    width: number;
+    weight: number;
+    length: number;
+    height: number;
+  };
 }

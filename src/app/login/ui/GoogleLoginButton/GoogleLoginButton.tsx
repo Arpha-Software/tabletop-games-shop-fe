@@ -1,10 +1,13 @@
 import { Button } from "@/app/ui/components";
+import { useRouter } from 'next/navigation';
 
 import GoogleIcon from '@/public/icons/google.svg';
 
 export const GoogleLoginButton = () => {
+  const router = useRouter();
+
   const handleLogin = async () => {
-    window.open(process.env.NEXT_PUBLIC_BASE_SERVER_URL, '_blank');
+    router.push(process.env.NEXT_PUBLIC_BASE_SERVER_URL as string);
   };
 
   return (

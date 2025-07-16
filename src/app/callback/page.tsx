@@ -1,29 +1,15 @@
-import { signup } from "../actions/auth";
 import { UserComponent } from "./ui/components/UserComponent";
 
-export default async function Callback({
-  searchParams: {
-    id,
-    firstName,
-    lastName,
-    email,
-    role,
-    accessToken,
-    accessTokenExpirationDate,
+export default function Callback({
+  searchParams,
+}: {
+  searchParams: { accessToken?: string };
+}) {
+  const { accessToken } = searchParams;
+
+  if (!accessToken) {
+    return <div>Invalid callback. No access token provided.</div>;
   }
-}: any) {
-  return (
-    <UserComponent
-      signup={signup}
-      user={{
-        id,
-        firstName,
-        lastName,
-        email,
-        role,
-      }}
-      accessToken={accessToken}
-      accessTokenExpirationDate={accessTokenExpirationDate}
-    />
-  )
+
+  return <UserComponent accessToken={accessToken} />;
 }

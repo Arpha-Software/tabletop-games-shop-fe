@@ -21,7 +21,7 @@ export const BlogCard = ({
   className,
 }: TProps) => {
   return (
-    <Link href={href} className={cn("block w-full min-w-[420px] bg-secondary-100 shadow-card rounded-lg", className)}>
+    <Link href={href} className={cn("block w-full bg-secondary-100 shadow-card rounded-lg", className)}>
       <Image src={img} alt="product image" width={600} height={600} className="w-full rounded-lg" />
 
       <div className="flex flex-col gap-2.5 p-3.5">

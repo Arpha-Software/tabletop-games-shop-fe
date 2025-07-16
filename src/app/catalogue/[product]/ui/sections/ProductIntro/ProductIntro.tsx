@@ -55,10 +55,10 @@ export const ProductIntro = ({ productId }: TProps) => {
   if (loading) {
     return <Loader className='bg-white z-10'/>
   }
-
+  console.log('product', product)
   return (
     <div className='flex justify-between'>
-      <Gallery images={["https://via.placeholder.com/1440", "https://via.placeholder.com/512", "https://via.placeholder.com/512", "https://via.placeholder.com/512"]} />
+      <Gallery images={product?.productPhotos && product.productPhotos.length > 0 ? product.productPhotos : ["https://via.placeholder.com/1440", "https://via.placeholder.com/512", "https://via.placeholder.com/512", "https://via.placeholder.com/512"]} />
 
       <section className='flex flex-col justify-between w-full pl-10'>
         <div>

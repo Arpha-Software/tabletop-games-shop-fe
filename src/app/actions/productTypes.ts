@@ -5,7 +5,7 @@ const getAuthToken = (): string | null => {
   return localStorage.getItem('authToken');
 };
 
-export const getAllCategories = async () => {
+export const getAllProductTypes = async () => {
   const authToken = getAuthToken();
   const headers: HeadersInit = {
     "Content-Type": "application/json",
@@ -15,12 +15,12 @@ export const getAllCategories = async () => {
   }
 
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/api/v1/categories`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/api/v1/product-types`, {
       headers,
     });
 
     if (!response.ok) {
-      throw new Error('Failed to fetch categories');
+      throw new Error('Failed to fetch product types');
     }
 
     const data = await response.json();
@@ -30,23 +30,23 @@ export const getAllCategories = async () => {
       data,
     };
   } catch (error: any) {
-    console.error("Get All Categories Error:", error);
+    console.error("Get All Product Types Error:", error);
     return {
       success: false,
       errors: [error.message],
-      data: { content: [] }, // Provide a default empty array
+      data: { content: [] },
     };
   }
 };
 
-export const createCategory = async (data: any) => {
+export const createProductType = async (data: any) => {
   try {
     const authToken = getAuthToken();
     if (!authToken) {
-      throw new Error('You must be logged in to create a category.');
+      throw new Error('You must be logged in to create a product type.');
     }
 
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/api/v1/categories`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/api/v1/product-types`, {
       method: 'POST',
       headers: {
         "Authorization": `Bearer ${authToken}`,
@@ -57,7 +57,7 @@ export const createCategory = async (data: any) => {
 
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(errorData.message || 'Failed to create category');
+      throw new Error(errorData.message || 'Failed to create product type');
     }
 
     return {
@@ -65,10 +65,10 @@ export const createCategory = async (data: any) => {
       errors: [],
     };
   } catch (error: any) {
-    console.error("Create Category Error:", error);
+    console.error("Create Product Type Error:", error);
     return {
       success: false,
       errors: [error.message],
     };
   }
-};
+}; 
