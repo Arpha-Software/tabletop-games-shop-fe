@@ -11,6 +11,7 @@ import Link from 'next/link';
 import { getAllCategories } from '@/app/actions/categories';
 import { getAllGenres } from '@/app/actions/genres';
 import { getAllProductTypes } from '@/app/actions/productTypes';
+import { uploadFile } from '@/app/actions/files';
 
 export const ProductsTab = () => {
   const [products, setProducts] = useState<TProduct[]>([]);
@@ -21,7 +22,7 @@ export const ProductsTab = () => {
   const [editingProduct, setEditingProduct] = useState<TProduct | null>(null);
   const [categories, setCategories] = useState<{id:number, name:string}[]>([]);
   const [genres, setGenres] = useState<{id:number, name:string}[]>([]);
-  const [fileUploads, setFileUploads] = useState<any[]>([]);
+  const [fileUploads, setFileUploads] = useState<{file: File, uuid: string, isMain: boolean}[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [productTypes, setProductTypes] = useState<{id:number, name:string, dimension:{width:number, height:number, length:number, weight:number}}[]>([]);
 
@@ -112,10 +113,9 @@ export const ProductsTab = () => {
     const files = e.target.files;
     if (!files) return;
     
-    // Create file uploads data
+    // Create file uploads data with actual File objects
     const uploads = Array.from(files).map((file, idx) => ({
-      type: file.type,
-      fileSize: file.size,
+      file,
       uuid: `${file.name}-${Date.now()}-${idx}`,
       isMain: fileUploads.length === 0 && idx === 0, // Only first file of first upload is main
     }));
@@ -135,12 +135,44 @@ export const ProductsTab = () => {
     
     // Append new files to existing ones
     setFileUploads(prev => [...prev, ...uploads]);
-    setProductData(prev => ({ ...prev, fileUploadRequests: [...prev.fileUploadRequests, ...uploads] }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      let fileUploadRequests: any[] = [];
+
+      // If we have files to upload, upload them first
+      if (fileUploads.length > 0) {
+        toast.loading('Завантаження зображень...');
+        
+        // Upload all files with a temporary target ID
+        const uploadPromises = fileUploads.map(async (fileUpload, index) => {
+          const tempTargetId = 1; // Temporary ID for file upload
+          
+          const uploadResponse = await uploadFile(fileUpload.file, tempTargetId, "PRODUCT");
+          if (uploadResponse.success) {
+            return {
+              type: fileUpload.file.type,
+              fileSize: fileUpload.file.size,
+              uuid: uploadResponse.data.fileUuid,
+              isMain: fileUpload.isMain,
+            };
+          } else {
+            throw new Error(`Failed to upload file ${fileUpload.file.name}: ${uploadResponse.errors[0]}`);
+          }
+        });
+
+        try {
+          fileUploadRequests = await Promise.all(uploadPromises);
+          toast.dismiss();
+        } catch (uploadError) {
+          toast.error(`Помилка завантаження зображень: ${uploadError}`);
+          return;
+        }
+      }
+
+      // Create the product with file upload requests
       const payload = {
         ...productData,
         playerNumber: Number(productData.playerNumber),
@@ -152,20 +184,23 @@ export const ProductsTab = () => {
         height: Number(productData.height),
         weight: Number(productData.weight),
         productTypeId: Number(productData.productTypeId),
+        fileUploadRequests,
       };
+      
       const response = await createProduct(payload);
-      if (response.success) {
-        toast.success('Товар створено успішно!');
-        setShowCreateForm(false);
-        setProductData({
-          name: '', productTypeId: '', playerNumber: '', quantity: '', playTime: '', description: '', price: '', width: '', length: '', height: '', weight: '', rulesLink: '', categories: [], genres: [], fileUploadRequests: [],
-        });
-        setFileUploads([]);
-        setImagePreviews([]);
-        fetchProducts();
-      } else {
+      if (!response.success) {
         toast.error(response.errors[0] || 'Помилка створення товару');
+        return;
       }
+
+      toast.success('Товар створено успішно!');
+      setShowCreateForm(false);
+      setProductData({
+        name: '', productTypeId: '', playerNumber: '', quantity: '', playTime: '', description: '', price: '', width: '', length: '', height: '', weight: '', rulesLink: '', categories: [], genres: [], fileUploadRequests: [],
+      });
+      setFileUploads([]);
+      setImagePreviews([]);
+      fetchProducts();
     } catch (error) {
       toast.error('Помилка створення товару');
     }
@@ -228,7 +263,7 @@ export const ProductsTab = () => {
               rulesLink: '',
               categories: [] as string[],
               genres: [] as string[],
-              fileUploadRequests: [] as any[],
+              fileUploadRequests: [],
             });
             setFileUploads([]);
             setImagePreviews([]);
@@ -497,7 +532,6 @@ export const ProductsTab = () => {
                                   const newPreviews = imagePreviews.filter((_, i) => i !== index);
                                   setFileUploads(newUploads);
                                   setImagePreviews(newPreviews);
-                                  setProductData(prev => ({ ...prev, fileUploadRequests: newUploads }));
                                 }}
                                 className="text-red-500 hover:text-red-700 text-sm font-bold focus:outline-none"
                               >
@@ -505,8 +539,8 @@ export const ProductsTab = () => {
                               </button>
                             </div>
                             <div className="text-xs text-gray-500 space-y-1">
-                              <div>Розмір: {(file.fileSize / 1024).toFixed(1)} KB</div>
-                              <div>Тип: {file.type}</div>
+                              <div>Розмір: {(file.file.size / 1024).toFixed(1)} KB</div>
+                              <div>Тип: {file.file.type}</div>
                               {file.isMain && (
                                 <div className="text-blue-600 font-medium">Головне фото</div>
                               )}

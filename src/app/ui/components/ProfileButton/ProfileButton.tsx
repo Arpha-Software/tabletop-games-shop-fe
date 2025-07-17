@@ -16,7 +16,7 @@ export const ProfileButton = () => {
   }, []);
 
   return (
-    <Link href={redirectUrl} className="flex items-center space-x-2">
+    <Link href={redirectUrl} className="flex items-center w-10 h-10">
       <Image src={ProfileIcon} alt="Profile" width={24} height={24} />
     </Link>
   );

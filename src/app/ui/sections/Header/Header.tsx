@@ -18,7 +18,7 @@ export const Header = () => {
           <div className="flex gap-12">
             <Search />
 
-            <div className="flex gap-4">
+            <div className="flex">
               <ProfileButton />
               <FavoriteButton />
               <CartButton />

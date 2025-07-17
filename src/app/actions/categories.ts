@@ -1,9 +1,4 @@
-const getAuthToken = (): string | null => {
-  if (typeof window === 'undefined') {
-    return null;
-  }
-  return localStorage.getItem('authToken');
-};
+import { getAuthToken } from "@/utils/helpers";
 
 export const getAllCategories = async () => {
   const authToken = getAuthToken();
@@ -34,7 +29,7 @@ export const getAllCategories = async () => {
     return {
       success: false,
       errors: [error.message],
-      data: { content: [] }, // Provide a default empty array
+      data: { content: [] },
     };
   }
 };

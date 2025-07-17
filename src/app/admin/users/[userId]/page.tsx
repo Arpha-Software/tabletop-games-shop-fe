@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { notFound } from 'next/navigation';
 import { Button } from '@/app/ui/components';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { handleApiError } from '@/utils/helpers';
 
 // Mock user and order data
 const mockUsers = [
@@ -179,12 +180,23 @@ export default function AdminUserPage({ params }: { params: { userId: string } }
       headers['Authorization'] = `Bearer ${authToken}`;
     }
     fetch(`${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/api/v1/users/${userId}`, { headers })
-      .then(res => {
+      .then(async res => {
+        // Handle 401 errors by redirecting to login
+        if (res.status === 401) {
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('authToken');
+            window.location.href = '/login';
+          }
+          return;
+        }
+        
         if (!res.ok) throw new Error('Failed to fetch user');
         return res.json();
       })
       .then(data => {
-        setUser(data);
+        if (data) {
+          setUser(data);
+        }
         setLoading(false);
       })
       .catch(err => {

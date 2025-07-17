@@ -6,6 +6,7 @@ import { Text } from '@/utils/ui/Text';
 import toast from 'react-hot-toast';
 import { Loader } from '@/app/ui/components/Loader';
 import { useRouter } from 'next/navigation';
+import { useApi } from '@/hooks/useApi';
 
 // Mock data structure for users
 type TUser = {
@@ -20,41 +21,20 @@ type TUser = {
 export const UsersTab = () => {
   const router = useRouter();
   const [users, setUsers] = useState<TUser[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
-  const getAuthToken = (): string | null => {
-    if (typeof window === 'undefined') {
-      return null;
-    }
-    return localStorage.getItem('authToken');
-  };
+  const { apiCall, loading, error } = useApi();
 
   useEffect(() => {
-    setLoading(true);
-    setError(null);
-    const authToken = getAuthToken();
-    const headers: HeadersInit = {
-      'Content-Type': 'application/json',
-    };
-    if (authToken) {
-      headers['Authorization'] = `Bearer ${authToken}`;
-    }
-    fetch(`${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/api/v1/users`, { headers })
-      .then(res => {
-        if (!res.ok) throw new Error('Failed to fetch users');
-        return res.json();
-      })
-      .then(data => {
+    const fetchUsers = async () => {
+      const data = await apiCall(`${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/api/v1/users`);
+      if (data) {
         setUsers(data.content || []);
-        setLoading(false);
-      })
-      .catch(err => {
-        setError('Не вдалося завантажити користувачів');
-        setLoading(false);
-      });
-  }, []);
+      }
+    };
+    
+    fetchUsers();
+  }, []); // Only run once on mount
 
   const filteredUsers = users.filter(user =>
     user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||

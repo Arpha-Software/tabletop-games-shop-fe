@@ -32,13 +32,13 @@ export const SectionHeader = () => {
 
   return (
     <>
-      <Sidebar isOpen={isCreateOpen} setOpen={setIsCreateOpen} />
+      {/* <Sidebar isOpen={isCreateOpen} setOpen={setIsCreateOpen} /> */}
 
       <header className="flex justify-between items-center mb-14 mx-16">
         <Text.Header>Найпопулярніші</Text.Header>
 
         <div className="flex items-center gap-5">
-          {isAdmin && <Button variant="primary" className="px-6 py-2 rounded-lg" onClick={handleSidebarOpen}>Створити</Button>}
+          {/* {isAdmin && <Button variant="primary" className="px-6 py-2 rounded-lg" onClick={handleSidebarOpen}>Створити</Button>} */}
           <SelectFilter options={filterOptions}/>
         </div>
       </header>

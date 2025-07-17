@@ -15,3 +15,5 @@ export { BlogCard } from './Card/components/BlogCard';
 export { Container } from './Container';
 export { Navigation } from '../sections/Header/components/Navigation';
 export { Input } from './Input';
+export { ErrorBoundary } from './ErrorBoundary';
+export { Loader } from './Loader';

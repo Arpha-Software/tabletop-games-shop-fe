@@ -1,14 +1,4 @@
-// This code should be added to your client-side API file, e.g., src/lib/api.ts
-
-// A helper function to safely get the token from localStorage on the client-side
-const getAuthToken = (): string | null => {
-  if (typeof window === 'undefined') {
-    return null;
-  }
-  return localStorage.getItem('authToken');
-};
-
-// --- GENRE API FUNCTIONS ---
+import { getAuthToken } from "@/utils/helpers";
 
 export const getAllGenres = async () => {
   const authToken = getAuthToken();
@@ -28,7 +18,6 @@ export const getAllGenres = async () => {
       throw new Error('Failed to fetch genres');
     }
 
-    // Assuming the backend returns the full data structure you had before
     const data = await response.json();
     return {
       success: true,
@@ -37,11 +26,10 @@ export const getAllGenres = async () => {
     };
   } catch (error: any) {
     console.error("Get All Genres Error:", error);
-    // Return a default structure on error to prevent crashes
     return {
       success: false,
       errors: [error.message],
-      data: { content: [] }, // Provide a default empty array for content
+      data: { content: [] },
     };
   }
 };
@@ -67,14 +55,12 @@ export const createGenre = async (data: any) => {
         throw new Error(errorData.message || 'Failed to create genre');
     }
 
-    // Return a simple success object
     return {
       success: true,
       errors: [],
     };
   } catch (error: any) {
     console.error("Create Genre Error:", error);
-    // Propagate a simple error object for the UI to handle
     return {
       success: false,
       errors: [error.message],

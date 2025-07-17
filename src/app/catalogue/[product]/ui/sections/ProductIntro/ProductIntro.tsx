@@ -72,7 +72,7 @@ export const ProductIntro = ({ productId }: TProps) => {
           />
         </div>
 
-        <ControlButtons className='mt-6' />
+        <ControlButtons product={product} className='mt-6' />
       </section>
     </div>
   )

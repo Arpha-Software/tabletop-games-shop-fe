@@ -18,6 +18,8 @@ export type TUser = {
   email: string;
   phone?: string;
   role: string;
+  isSubscribedToNewsLetter?: boolean;
+  subscribedToNewsLetter?: boolean;
 }
 
 export type TProduct = {
@@ -68,4 +70,15 @@ export type TProductType = {
     length: number;
     height: number;
   };
+}
+
+export type TCartItem = {
+  id: number;
+  product: TProduct;
+  quantity: number;
+}
+
+export type TCart = {
+  items: TCartItem[];
+  total: number;
 }

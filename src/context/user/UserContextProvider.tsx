@@ -5,6 +5,7 @@ import { UserContext } from "./context";
 import { TUser } from "@/utils/types";
 import { Loader } from "@/app/ui/components/Loader";
 import { EUserRole } from "@/utils/enums";
+import { handleApiError } from "@/utils/helpers";
 
 type TProps = PropsWithChildren<{}>;
 
@@ -28,6 +29,15 @@ const fetchCurrentUser = async (): Promise<{ success: boolean; data: TUser | nul
         "Authorization": `Bearer ${token}`,
       }
     });
+
+    // Handle 401 errors by redirecting to login
+    if (response.status === 401) {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('authToken');
+        window.location.href = '/login';
+      }
+      return { success: false, data: null };
+    }
 
     if (!response.ok) {
       return { success: false, data: null };

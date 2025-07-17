@@ -13,22 +13,30 @@ export const UGonnaNeed = () => {
 
   return (
     <Container className='relative mt-20'>
-
       {!loading ? (
         <>
           <Text.Header className='mb-10'>Вам це точно знадобиться</Text.Header>
-          <div className={`w-full grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 justify-center justify-items-center gap-5`}>
+          <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
             {products.slice(0, 5).map((item, index) => (
               <ProductCard
-                key={index}
+                key={item.id || index}
                 item={item}
+                className="w-full"
               />
             ))}
           </div>
 
-          <Button tag={Link} href='/catalogue' className='mx-auto mt-8'>Більше товарів</Button>
+          <div className="flex justify-center mt-12">
+            <Button tag={Link} href='/catalogue' className='px-8 py-3'>
+              Більше товарів
+            </Button>
+          </div>
         </>
-      ) : <Loader />}
+      ) : (
+        <div className="flex items-center justify-center h-64">
+          <Loader />
+        </div>
+      )}
     </Container>
   )
 }

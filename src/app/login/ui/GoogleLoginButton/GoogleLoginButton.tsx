@@ -7,7 +7,7 @@ export const GoogleLoginButton = () => {
   const router = useRouter();
 
   const handleLogin = async () => {
-    router.push(process.env.NEXT_PUBLIC_BASE_SERVER_URL as string);
+    router.push(`${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/oauth2/authorization/google`);
   };
 
   return (

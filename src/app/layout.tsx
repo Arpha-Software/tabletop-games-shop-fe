@@ -7,6 +7,9 @@ import { Footer } from "@/app/ui/sections/Footer";
 
 import { UserContextProvider } from "@/context/user/UserContextProvider";
 import { ProductsContextProvider } from "@/context/product/ProductsContextProvider";
+import { CartContextProvider } from "@/context/cart/CartContextProvider";
+import { ErrorBoundary } from "@/app/ui/components/ErrorBoundary";
+import { CartSidebar } from "@/app/cart/ui/components/CartSidebar";
 
 import "./globals.css";
 
@@ -64,21 +67,26 @@ export default function RootLayout({
           antialiased flex flex-col min-h-screen bg-secondary-50`
         }
       >
-        <UserContextProvider>
-          <ProductsContextProvider>
-            <>{auth}</>
+        <ErrorBoundary>
+          <UserContextProvider>
+            <ProductsContextProvider>
+              <CartContextProvider>
+                <>{auth}</>
 
-            <Header />
+                <Header />
 
-            <main className="flex-grow">
-              {children}
-            </main>
+                <main className="flex-grow">
+                  {children}
+                </main>
 
-            <Footer />
+                <Footer />
 
-            <Toaster />
-          </ProductsContextProvider>
-        </UserContextProvider>
+                <Toaster />
+                <CartSidebar />
+              </CartContextProvider>
+            </ProductsContextProvider>
+          </UserContextProvider>
+        </ErrorBoundary>
       </body>
     </html>
   );

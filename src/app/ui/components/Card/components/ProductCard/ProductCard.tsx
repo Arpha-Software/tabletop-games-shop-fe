@@ -1,5 +1,10 @@
+'use client';
+
 import Link from "next/link";
 import Image from "next/image";
+import { useCartContext } from '@/context/cart/context';
+import { Button } from '@/app/ui/components/Button';
+import { Text } from '@/utils/ui/Text';
 
 import { cn } from "@/utils/helpers";
 import { TProduct } from "@/utils/types";
@@ -13,26 +18,59 @@ export const ProductCard = ({
   item,
   className,
 }: TProps) => {
+  const { addItem } = useCartContext();
+
   if (!item) {
     return null;
   }
 
   const { id, name, price } = item;
 
-  return (
-    <Link href={`/catalogue/${id}`} className={cn("block min-w-52 max-w-72 w-full min-h-64 max-h-72 bg-secondary-100 shadow-card rounded-lg", className)}>
-      <Image 
-        src={item.mainImgLink || (item.productPhotos && item.productPhotos.length > 0 ? item.productPhotos[0] : 'https://res.cloudinary.com/dkwve6mul/image/upload/v1729547011/Rectangle_9_shgshw.png')} 
-        alt={name} 
-        width={600} 
-        height={600} 
-        className="w-full h-40 rounded-lg object-cover" 
-      />
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    addItem(id, 1);
+  };
 
-      <div className="flex flex-col gap-2.5 p-3.5">
-        <p>{name}</p>
-        <p className="font-medium">{price} ₴</p>
+  return (
+    <div className={cn("group relative bg-white shadow-card rounded-xl overflow-hidden hover:shadow-xl transition-all duration-300", className)}>
+      {/* Product Image */}
+      <Link href={`/catalogue/${id}`} className="block">
+        <div className="relative overflow-hidden">
+          <Image 
+            src={item.mainImgLink || (item.productPhotos && item.productPhotos.length > 0 ? item.productPhotos[0] : 'https://res.cloudinary.com/dkwve6mul/image/upload/v1729547011/Rectangle_9_shgshw.png')} 
+            alt={name} 
+            width={600} 
+            height={600} 
+            className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300" 
+          />
+          {/* Overlay for add to cart button */}
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
+        </div>
+      </Link>
+
+      {/* Product Info */}
+      <div className="p-4">
+        <Link href={`/catalogue/${id}`} className="block">
+          <Text.Paragraph className="font-medium text-gray-900 mb-2 hover:text-primary transition-colors overflow-hidden text-ellipsis display-webkit-box -webkit-line-clamp-2 -webkit-box-orient-vertical">
+            {name}
+          </Text.Paragraph>
+        </Link>
+        
+        <div className="flex items-center justify-between">
+          <Text.Span className="text-lg font-bold text-primary">
+            {price} ₴
+          </Text.Span>
+          
+          <Button
+            onClick={handleAddToCart}
+            variant="secondary"
+            className="px-4 py-2 text-sm font-medium hover:bg-primary hover:text-white transition-all duration-200"
+          >
+            В кошик
+          </Button>
+        </div>
       </div>
-    </Link>
+    </div>
   )
 }

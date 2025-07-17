@@ -1,13 +1,4 @@
-// IMPORTANT: Remove the 'use server'; directive. This file now contains client-side code.
-
-// A helper function to get the token from localStorage on the client-side
-const getAuthToken = (): string | null => {
-  // Ensure this code only runs in the browser
-  if (typeof window === 'undefined') {
-    return null;
-  }
-  return localStorage.getItem('authToken');
-};
+import { getAuthToken } from "@/utils/helpers";
 
 export const createProduct = async (data: any) => {
   try {
@@ -33,9 +24,11 @@ export const createProduct = async (data: any) => {
         };
     }
 
+    const data = await response.json();
     return {
       success: true,
       errors: [],
+      data,
     };
   } catch (error: any) {
     return {
@@ -48,8 +41,7 @@ export const createProduct = async (data: any) => {
 export const getAllProducts = async (page: number) => {
   try {
     const authToken = getAuthToken();
-    // Note: Your backend might need to handle unauthenticated requests gracefully
-    
+
     const headers: HeadersInit = {
         "Content-Type": "application/json",
     };
@@ -87,7 +79,7 @@ export const getAllProducts = async (page: number) => {
 export const getProductById = async (id: string) => {
   try {
     const authToken = getAuthToken();
-    
+
     const headers: HeadersInit = {
         "Content-Type": "application/json",
     };
