@@ -1,0 +1,1 @@
+export { Characteristics } from './Characteristics';

@@ -23,7 +23,7 @@ export const Popular = () => {
       </div>
 
       <div className={`grid grid-cols-5 justify-center justify-items-center gap-5`}>
-        {products.slice(0, 5).map((item, index) => (
+        {products?.slice(0, 5).map((item, index) => (
           <ProductCard
             key={index}
             item={item}

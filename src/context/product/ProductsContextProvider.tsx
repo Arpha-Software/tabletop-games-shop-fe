@@ -24,12 +24,12 @@ export const ProductsContextProvider = ({ children }: TProps) => {
       try {
         setLoading(true);
         const response = await getAllProducts(page);
-
-        setPageable(response.data.pageable);
+        console.log('resp', response)
+        setPageable(response.data?.pageable);
         setTotalPages(response.data?.totalPages);
         setTotalElements(response.data?.totalElements);
 
-        setProducts(response.data.content);
+        setProducts(response.data?.content);
       } catch (error) {
         console.error(error);
       } finally {

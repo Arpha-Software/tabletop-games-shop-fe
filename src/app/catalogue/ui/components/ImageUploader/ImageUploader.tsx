@@ -1,10 +1,17 @@
 'use client';
 
+import { ImageWithUUID } from "@/utils/types";
+import { v4 as uuid } from "uuid"
+
 export const ImageUploader = ({ images, setImages, maxImages, setPreviewImage }: any) => {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const newImages = Array.from(e.target.files).slice(0, maxImages - images.length);
-      setImages((prevImages: File[]) => [...prevImages, ...newImages]);
+      const modifiedImages: ImageWithUUID[] = newImages.map((file) => ({
+        file,
+        uuid: uuid(),
+      }));
+      setImages((prevImages: ImageWithUUID[]) => [...prevImages, ...modifiedImages]);
     }
   };
 
@@ -12,8 +19,8 @@ export const ImageUploader = ({ images, setImages, maxImages, setPreviewImage }:
     setImages((prevImages: any) => prevImages.filter((_: any, i: any) => i !== index));
   };
 
-  const handlePreviewImage = (image: File) => {
-    const imageUrl = URL.createObjectURL(image);
+  const handlePreviewImage = (image: ImageWithUUID) => {
+    const imageUrl = URL.createObjectURL(image.file);
     setPreviewImage(imageUrl);
   };
 
@@ -33,22 +40,22 @@ export const ImageUploader = ({ images, setImages, maxImages, setPreviewImage }:
         </div>
       </div>
       <div className="flex flex-wrap gap-2 mt-4">
-        {images.map((image: File, index: number) => (
-          <div key={index} className="relative group w-20 h-20">
-            <img
-              src={URL.createObjectURL(image)}
-              alt="preview"
-              className="w-full h-full object-cover rounded-lg border border-gray-500 cursor-pointer"
-              onClick={() => handlePreviewImage(image)}
-            />
-            <button
-              onClick={() => handleRemoveImage(index)}
-              className="absolute top-1 right-1 w-6 h-6 bg-red-600 text-white text-xs p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-            >
-              ✕
-            </button>
-          </div>
-        ))}
+      {images.map((image: ImageWithUUID, index: number) => (
+        <div key={index} className="relative group w-20 h-20">
+          <img
+            src={URL.createObjectURL(image.file)}
+            alt="preview"
+            className="w-full h-full object-cover rounded-lg border border-gray-500 cursor-pointer"
+            onClick={() => handlePreviewImage(image)}
+          />
+          <button
+            onClick={() => handleRemoveImage(index)}
+            className="absolute top-1 right-1 w-6 h-6 bg-red-600 text-white text-xs p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+          >
+            ✕
+          </button>
+        </div>
+      ))}
       </div>
     </div>
   );

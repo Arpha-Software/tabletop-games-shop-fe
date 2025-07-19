@@ -10,5 +10,5 @@ export default function Page() {
         <LoginPage screen={screen} setScreen={setScreen} />
       )}
     </Modal>
-  )
+  );
 }

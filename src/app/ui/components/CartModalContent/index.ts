@@ -1,0 +1,1 @@
+export { CartModalContent } from './CartModalContent';

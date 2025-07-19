@@ -3,9 +3,11 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUserContext } from '@/context/user/context';
+import Cookies from 'js-cookie'
 
 import { TUser } from '@/utils/types';
 import { useFormState } from 'react-dom';
+import { setCookieParam } from '@/app/lib/session';
 
 type TProps = {
   user: TUser;
@@ -19,16 +21,17 @@ export const UserComponent = (props: TProps) => {
 
   useEffect(() => {
     const fetchUser = async () => {
+      setCookieParam('accessToken', props.accessToken, props.accessTokenExpirationDate);
+
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/users/${props.user.id}`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/api/v1/users/${props.user.id}`, {
           headers: {
-            "Authorization": `Bearer eyJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJ0YWJsZXRvcC1nYW1lcy1zaG9wIiwic3ViIjoicG9saXZrYWFyc2VuQGdtYWlsLmNvbSIsImlhdCI6MTczMTk3NDU5NCwiZXhwIjoxNzM5MTc0NTk0fQ.WM1UAPYopSP2QJJy5A9diIpDZU2k6ObC08PcfDObkdCh7DWb57K-DrLNJv2btt1XIUIBVUXpNPL2X_jQZhnCLQ`,
+            "Authorization": `Bearer ${props.accessToken}`,
           }
         });
         const data = await response.json();
 
         setUser(data);
-        localStorage.setItem('userId', JSON.stringify(data.id));
       } catch (error) {
         console.error(error);
       }
@@ -36,7 +39,7 @@ export const UserComponent = (props: TProps) => {
 
     fetchUser();
 
-    props.signup({ accessToken: props.accessToken, accessTokenExpirationDate: props.accessTokenExpirationDate });
+    props.signup();
   }, [props.user]);
 
   return (

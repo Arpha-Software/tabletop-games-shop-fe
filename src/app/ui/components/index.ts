@@ -4,6 +4,11 @@ export { CartButton } from './CartButton';
 export { ProfileButton } from './ProfileButton';
 export { FavoriteButton } from './FavoriteButton';
 export { Separator } from './Separator';
+export { Pagination } from './Pagination';
+export { Select } from './Select';
+export { Modal } from './Modal';
+export { Table } from './Table';
+export { useToast, ToastProvider } from './Toast';
 
 export { Logo } from './Logo';
 

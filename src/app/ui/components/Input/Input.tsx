@@ -5,21 +5,26 @@ import { InputHTMLAttributes } from "react";
 type TProps = {
   variant?: 'primary' | 'secondary'
   className?: string
+  label?: string
 } & InputHTMLAttributes<HTMLInputElement>
 
 export const Input = ({
   variant = 'primary',
   className,
+  label,
   ...props
 }: TProps) => {
   return (
-    <input
-      className={cn(
-        inputVatiants({ variant }),
-        className,
-      )}
-      {...props}
-    />
+    <div className="space-y-2">
+      {label && <label className="block text-sm font-medium text-gray-700">{label}</label>}
+      <input
+        className={cn(
+          inputVatiants({ variant }),
+          className,
+        )}
+        {...props}
+      />
+    </div>
   )
 }
 

@@ -4,9 +4,9 @@ import { cookies } from "next/headers";
 
 export const getAllCategories = async () => {
   try {
-    const authToken = cookies().get('authToken')?.value;
+    const authToken = cookies().get('accessToken')?.value;
 
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/categories`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/api/v1/categories`, {
       headers: {
         "Authorization": `Bearer ${authToken}`,
       }
@@ -38,9 +38,9 @@ export const getAllCategories = async () => {
 
 export const createCategory = async (data: any) => {
   try {
-    const authToken = cookies().get('authToken')?.value;
+    const authToken = cookies().get('accessToken')?.value;
 
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/categories`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/api/v1/categories`, {
       method: 'POST',
       headers: {
         "Authorization": `Bearer ${authToken}`,
@@ -67,3 +67,44 @@ export const createCategory = async (data: any) => {
     };
   }
 }
+
+export const deleteCategory = async (categoryId: string) => {
+  try {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories/${categoryId}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      return { success: false, errors: [error.message] };
+    }
+
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, errors: [error.message] };
+  }
+};
+
+export const updateCategory = async (categoryId: string, data: { name: string }) => {
+  try {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories/${categoryId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      return { success: false, errors: [error.message] };
+    }
+
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, errors: [error.message] };
+  }
+};

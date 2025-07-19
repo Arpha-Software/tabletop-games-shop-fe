@@ -4,15 +4,16 @@ import { ReactNode } from "react";
 type TProps = {
   children: ReactNode;
   className?: string;
+  id?: string;
 };
 
 export const Text = ({ children, className }: TProps) => {
   return <span className={cn(className)}>{children}</span>;
 };
 
-Text.Header = ({ children, className }: TProps) => {
+Text.Header = ({ children, className, id }: TProps) => {
   return (
-    <h1 className={cn("text-3xl font-primary font-bold", className)}>
+    <h1 className={cn("text-3xl font-primary font-bold", className)} id={id}>
       {children}
     </h1>
   );

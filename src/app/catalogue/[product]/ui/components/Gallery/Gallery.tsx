@@ -8,16 +8,16 @@ export const Gallery = ({ images }: TProps) => {
   const [mainImage, ...restImages] = images;
 
   return (
-    <div className='w-full flex gap-4'>
+    <div className='w-full h-full flex gap-4'>
       <Image
         src={mainImage}
         alt='image'
         width={1000}
         height={1000}
-        className='w-[512px] h-[512px] bg-slate-400 rounded-lg'
+        className='w-[512px] bg-slate-400 rounded-lg'
       />
 
-      <div className='flex flex-col justify between gap-4'>
+      <div className='flex max-w-44 w-full h-full flex-col justify between gap-4'>
         {restImages.splice(0, 3).map((image, index) => (
           <Image
             key={index}
@@ -25,7 +25,7 @@ export const Gallery = ({ images }: TProps) => {
             alt='image'
             width={512}
             height={512}
-            className='w-40 h-40 bg-slate-400 rounded-lg'
+            className='bg-slate-400 rounded-lg'
           />
         ))}
       </div>
