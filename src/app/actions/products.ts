@@ -38,7 +38,7 @@ export const createProduct = async (productData: any) => {
   }
 };
 
-export const getAllProducts = async (page: number, sort: string) => {
+export const getAllProducts = async (page: number, sort: string = "id,asc") => {
   try {
     const authToken = getAuthToken();
 
