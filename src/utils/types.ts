@@ -25,31 +25,36 @@ export type TUser = {
 export type TProduct = {
   id: number;
   name: string;
-  type: {
-    id: number;
-    name: string;
-    dimension: {
-      width: number;
-      weight: number;
-      length: number;
-      height: number;
-    };
-  };
-  playerNumber: number;
-  playTime: number;
   description: string;
   price: number;
-  rulesLink: string;
-  width: number;
-  height: number;
-  length: number;
-  weight: number;
   quantity: number;
-  mainImgLink: string;
-  categories: string[];
-  genres: string[];
-  productPhotos: string[];
-}
+  gameDetails: {
+    players: string;
+    age: string;
+    playTime: string;
+    complexity: number;
+    bggRating: number;
+    components: string;
+  };
+  classification: {
+    language: string;
+    genres: string[];
+    categories: string[];
+    mechanics: string[];
+  };
+  publicationDetails: {
+    author: string;
+    publisher: string;
+  };
+  media: {
+    mainImgLink: string;
+    photos: string[];
+    rulesLink: string;
+  };
+  averageRating?: number;
+  reviewCount?: number;
+  addons?: TProduct[];
+};
 
 export type TCategory = {
   id: number;
@@ -76,6 +81,7 @@ export type TCartItem = {
   id: number;
   product: TProduct;
   quantity: number;
+  addons?: TProduct[];
 }
 
 export type TCart = {

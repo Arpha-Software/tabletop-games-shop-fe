@@ -30,7 +30,7 @@ export const CartItem = ({ item, className }: TProps) => {
       {/* Product Image */}
       <div className="flex-shrink-0">
         <Image
-          src={product.mainImgLink || (product.productPhotos && product.productPhotos.length > 0 ? product.productPhotos[0] : 'https://res.cloudinary.com/dkwve6mul/image/upload/v1729547011/Rectangle_9_shgshw.png')}
+          src={product.media.mainImgLink || (product.media.photos && product.media.photos.length > 0 ? product.media.photos[0] : 'https://res.cloudinary.com/dkwve6mul/image/upload/v1729547011/Rectangle_9_shgshw.png')}
           alt={product.name}
           width={80}
           height={80}
@@ -46,6 +46,21 @@ export const CartItem = ({ item, className }: TProps) => {
         <Text.Span className="text-lg font-bold text-primary">
           {product.price}₴
         </Text.Span>
+        {/* Add-ons display */}
+        {item.addons && item.addons.length > 0 && (
+          <div className="mt-2 ml-2 border-l-2 border-primary pl-3">
+            <Text.Span className="text-xs text-primary font-semibold mb-1 block">Доповнення:</Text.Span>
+            <ul className="space-y-1">
+              {item.addons.map(addon => (
+                <li key={addon.id} className="flex items-center gap-2 text-xs text-gray-700">
+                  <span className="inline-block w-2 h-2 bg-primary rounded-full mr-1"></span>
+                  <span>{addon.name}</span>
+                  <span className="text-primary font-bold ml-2">{addon.price}₴</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
 
       {/* Quantity Controls */}

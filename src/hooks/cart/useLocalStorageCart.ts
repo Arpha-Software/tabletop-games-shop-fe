@@ -51,38 +51,44 @@ export const useLocalStorageCart = (products: TProduct[] = []) => {
     }
   }, [cart, loading]);
 
-  const addItem = useCallback(async (productId: number, quantity: number = 1) => {
+  const addItem = useCallback(async (productId: number, quantity: number = 1, options?: { addons?: number[] }) => {
     const product = products.find(p => p.id === productId);
     if (!product) {
       toast.error('Товар не знайдено');
       return;
     }
 
+    // Find add-on products if provided
+    let addons: TProduct[] | undefined = undefined;
+    if (options?.addons && options.addons.length > 0) {
+      addons = products.filter(p => options.addons!.includes(p.id));
+    }
+
     setCart(prevCart => {
       if (!prevCart) {
-        const newItem: TCartItem = { id: Date.now(), product, quantity };
+        const newItem: TCartItem = { id: Date.now(), product, quantity, ...(addons ? { addons } : {}) };
         return {
           items: [newItem],
-          total: product.price * quantity
+          total: product.price * quantity + (addons ? addons.reduce((sum, a) => sum + a.price, 0) : 0)
         };
       }
 
-      const existingItem = prevCart.items.find(item => item.product.id === productId);
+      const existingItem = prevCart.items.find(item => item.product.id === productId && JSON.stringify(item.addons?.map(a => a.id).sort()) === JSON.stringify((addons || []).map(a => a.id).sort()));
       if (existingItem) {
         const updatedItems = prevCart.items.map(item =>
-          item.product.id === productId
+          item.product.id === productId && JSON.stringify(item.addons?.map(a => a.id).sort()) === JSON.stringify((addons || []).map(a => a.id).sort())
             ? { ...item, quantity: item.quantity + quantity }
             : item
         );
         return {
           items: updatedItems,
-          total: updatedItems.reduce((sum, item) => sum + (item.product.price * item.quantity), 0)
+          total: updatedItems.reduce((sum, item) => sum + (item.product.price * item.quantity) + (item.addons ? item.addons.reduce((s, a) => s + a.price, 0) * item.quantity : 0), 0)
         };
       } else {
-        const newItem: TCartItem = { id: Date.now(), product, quantity };
+        const newItem: TCartItem = { id: Date.now(), product, quantity, ...(addons ? { addons } : {}) };
         return {
           items: [...prevCart.items, newItem],
-          total: prevCart.total + (product.price * quantity)
+          total: prevCart.total + (product.price * quantity) + (addons ? addons.reduce((sum, a) => sum + a.price, 0) * quantity : 0)
         };
       }
     });

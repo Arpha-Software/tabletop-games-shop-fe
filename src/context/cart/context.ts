@@ -11,7 +11,7 @@ export type TCartContext = {
   cart: TCart | null;
   loading: boolean;
   setCart: Dispatch<SetStateAction<TCart | null>>;
-  addItem: (productId: number, quantity?: number) => Promise<void>;
+  addItem: (productId: number, quantity?: number, options?: { addons?: number[] }) => Promise<void>;
   updateItem: (itemId: number, quantity: number) => Promise<void>;
   removeItem: (itemId: number) => Promise<void>;
   clearCart: () => Promise<void>;
@@ -29,4 +29,4 @@ export const useCartContext = () => {
     throw new Error('useCartContext must be used within a CartContextProvider');
   }
   return context;
-}; 
+};

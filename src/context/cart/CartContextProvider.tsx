@@ -29,4 +29,4 @@ export const CartContextProvider = ({ children }: TProps) => {
       {children}
     </CartContext.Provider>
   );
-}; 
+};

@@ -1,41 +1,24 @@
 import { getAuthToken } from "@/utils/helpers";
+import { v4 as uuid } from "uuid";
 
-export const uploadFile = async (file: File, targetId: number, targetType: string = "PRODUCT") => {
+export const uploadFile = async (file: File, isMain: boolean) => {
   try {
     const authToken = getAuthToken();
     if (!authToken) {
       return { success: false, errors: ['Authentication token not found.'] };
     }
 
-    // Convert file to base64
-    const base64 = await new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => {
-        const result = reader.result as string;
-        // Remove the data URL prefix (e.g., "data:image/jpeg;base64,")
-        const base64Data = result.split(',')[1];
-        resolve(base64Data);
-      };
-      reader.onerror = reject;
-    });
+    const fileUuid = uuid();
 
-    // Based on the existing file structure from the GET response
+    // Step 1: Create file record
     const payload = {
-      fileName: `products/${targetId}/${file.name}`,
+      type: file.type,
       fileSize: file.size,
-      targetId: targetId,
-      targetType: targetType === "PRODUCT" ? "PRODUCT_MAIN_IMG" : targetType,
-      fileType: file.type,
-      fileData: base64
+      targetType: isMain ? "PRODUCT_MAIN_IMG" : "PRODUCT",
+      fileUuid: fileUuid
     };
 
-    console.log('Uploading file with payload:', {
-      name: file.name,
-      size: file.size,
-      type: file.type,
-      payload
-    });
+    console.log('Creating file record with payload:', payload);
 
     const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/api/v1/files`, {
       method: 'POST',
@@ -47,7 +30,7 @@ export const uploadFile = async (file: File, targetId: number, targetType: strin
     });
 
     if (!response.ok) {
-      let errorMessage = 'Failed to upload file';
+      let errorMessage = 'Failed to create file record';
       try {
         const errorData = await response.json();
         errorMessage = errorData.detail || errorData.errors?.[0] || errorMessage;
@@ -55,18 +38,41 @@ export const uploadFile = async (file: File, targetId: number, targetType: strin
         errorMessage = `${response.status}: ${response.statusText}`;
       }
       
-      console.error('Upload failed:', errorMessage);
+      console.error('File record creation failed:', errorMessage);
       return {
         success: false,
         errors: [errorMessage],
       };
     }
 
-    const data = await response.json();
-    console.log('Upload successful:', data);
+    const fileRecord = await response.json();
+    console.log('File record created:', fileRecord);
+
+    // Step 2: Upload file binary to the provided link
+    const uploadResponse = await fetch(fileRecord.fileAccessLink.link, {
+      method: 'PUT',
+      headers: {
+        'x-ms-blob-type': 'BlockBlob',
+        'Content-Type': file.type,
+      },
+      body: file, // Send the file binary directly
+    });
+
+    if (!uploadResponse.ok) {
+      console.error('File upload failed:', uploadResponse.status, uploadResponse.statusText);
+      return {
+        success: false,
+        errors: [`Failed to upload file: ${uploadResponse.status} ${uploadResponse.statusText}`],
+      };
+    }
+
+    console.log('File upload successful');
     return {
       success: true,
-      data,
+      data: {
+        ...fileRecord,
+        fileUuid: fileUuid,
+      },
       errors: [],
     };
   } catch (error: any) {

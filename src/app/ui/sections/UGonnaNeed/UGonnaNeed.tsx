@@ -9,7 +9,7 @@ import { useProductsContext } from '@/context/product/context';
 import { Loader } from '../../components/Loader';
 
 export const UGonnaNeed = () => {
-  const { products, loading } = useProductsContext();
+  const { recommendations, loading } = useProductsContext();
 
   return (
     <Container className='relative mt-20'>
@@ -17,7 +17,7 @@ export const UGonnaNeed = () => {
         <>
           <Text.Header className='mb-10'>Вам це точно знадобиться</Text.Header>
           <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
-            {products.slice(0, 5).map((item, index) => (
+            {recommendations.slice(0, 5).map((item, index) => (
               <ProductCard
                 key={item.id || index}
                 item={item}

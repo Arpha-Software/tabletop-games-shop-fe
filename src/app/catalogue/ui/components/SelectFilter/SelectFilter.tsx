@@ -13,9 +13,10 @@ type TProps = {
     label: string;
   }[];
   className?: string;
+  onSortChange: (value: string) => void;
 };
 
-export const SelectFilter = ({ options, className }: TProps) => {
+export const SelectFilter = ({ options, className, onSortChange }: TProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedValue, setSelectedValue] = useState(options[0]);
 
@@ -31,6 +32,7 @@ export const SelectFilter = ({ options, className }: TProps) => {
 
   const handleOptionClick = (option: { value: string; label: string }) => {
     setSelectedValue(option);
+    onSortChange(option.value);
     setIsOpen(false);
   };
 

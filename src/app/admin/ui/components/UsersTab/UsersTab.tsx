@@ -32,9 +32,9 @@ export const UsersTab = () => {
         setUsers(data.content || []);
       }
     };
-    
+
     fetchUsers();
-  }, []); // Only run once on mount
+  }, []);
 
   const filteredUsers = users.filter(user =>
     user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||

@@ -8,7 +8,7 @@ import { Text } from "../../../../utils/ui/Text";
 import { cn } from "@/utils/helpers";
 
 type ButtonProps = {
-  variant?: "primary" | "secondary" | "base" | "link" | "link-disabled" | "disabled";
+  variant?: "primary" | "secondary" | "base" | "link" | "link-disabled" | "disabled" | "plain" | "plain-focus";
   tag?: "button" | "div" | "a" | typeof Link;
   className?: string;
   type?: "button" | "submit" | "reset";
@@ -82,16 +82,18 @@ export const Button = ({
 }
 
 const buttonVariants = cva(
-  "block w-fit rounded-full px-8 py-2 border transition-all",
+  "block w-fit px-8 py-2 transition-all",
   {
     variants: {
       variant: {
-        primary: "bg-primary border-primary hover:bg-primary/80",
-        secondary: "bg-transparent border-primary hover:bg-primary hover:text-white",
-        base: "bg-transparent",
-        link: "bg-transparent underline border-transparent hover:text-primary",
+        primary: "border rounded-full bg-primary border-primary hover:bg-primary/80",
+        secondary: "border rounded-full bg-transparent border-primary hover:bg-primary hover:text-white",
+        base: "border rounded-full bg-transparent",
+        link: "border rounded-full bg-transparent underline border-transparent hover:text-primary",
         "link-disabled": "bg-transparent underline border-transparent text-black/40",
-        disabled: "cursor-not-allowed"
+        plain: "border-none",
+        "plain-focus": "border-b border-primary",
+        disabled: "border rounded-full cursor-not-allowed"
       }
     },
     defaultVariants: {
