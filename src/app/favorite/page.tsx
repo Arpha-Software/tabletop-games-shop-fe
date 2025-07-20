@@ -1,89 +1,95 @@
-import { Container, ProductCard } from "@/app/ui/components";
+'use client';
+
+import { useEffect, useState } from 'react';
+import { Container, Button } from "@/app/ui/components";
 import { Text } from "@/utils/ui/Text";
 import { TProduct } from "@/utils/types";
-
-// Mock favorite products (reuse mockProducts structure from useMockCart)
-const mockFavorites: TProduct[] = [
-  {
-    id: 1,
-    name: "Назва товару, можливо навіть довга",
-    description: "A great board game for everyone",
-    price: 720,
-    quantity: 10,
-    gameDetails: {
-      players: "2-4",
-      age: "8+",
-      playTime: "60",
-      complexity: 2,
-      bggRating: 7.2,
-      components: "Board, cards, tokens"
-    },
-    classification: {
-      language: "UA",
-      genres: ["Family"],
-      categories: ["Strategy"],
-      mechanics: ["Worker placement"]
-    },
-    publicationDetails: {
-      author: "Автор 1",
-      publisher: "Видавець 1"
-    },
-    media: {
-      mainImgLink: "https://res.cloudinary.com/dkwve6mul/image/upload/v1729547011/Rectangle_9_shgshw.png",
-      photos: ["https://res.cloudinary.com/dkwve6mul/image/upload/v1729547011/Rectangle_9_shgshw.png"]
-    },
-    averageRating: 4.5,
-    reviewCount: 12,
-    addons: []
-  },
-  {
-    id: 2,
-    name: "Ще одна гра для улюбленого",
-    description: "An exciting card game",
-    price: 720,
-    quantity: 15,
-    gameDetails: {
-      players: "4-8",
-      age: "10+",
-      playTime: "30",
-      complexity: 1,
-      bggRating: 6.8,
-      components: "Cards"
-    },
-    classification: {
-      language: "UA",
-      genres: ["Casual"],
-      categories: ["Party"],
-      mechanics: ["Set collection"]
-    },
-    publicationDetails: {
-      author: "Автор 2",
-      publisher: "Видавець 2"
-    },
-    media: {
-      mainImgLink: "https://res.cloudinary.com/dkwve6mul/image/upload/v1729547011/Rectangle_9_shgshw.png",
-      photos: ["https://res.cloudinary.com/dkwve6mul/image/upload/v1729547011/Rectangle_9_shgshw.png"]
-    },
-    averageRating: 4.0,
-    reviewCount: 8,
-    addons: []
-  }
-];
+import { getWishlist, removeProductFromWishlist } from '../actions/wishlist';
+import { Loader } from '../ui/components/Loader';
+import { Modal } from '../ui/components/Modal';
+import { WishlistProductCard } from './ui/components/WishlistProductCard';
+import toast from 'react-hot-toast';
 
 export default function Favorite() {
+  const [favorites, setFavorites] = useState<TProduct[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [shareableLink, setShareableLink] = useState('');
+  const [isShareModalOpen, setShareModalOpen] = useState(false);
+
+  useEffect(() => {
+    const fetchFavorites = async () => {
+      const response = await getWishlist();
+      if (response.success) {
+        setFavorites(response.data.products);
+        setShareableLink(response.data.shareableLink);
+      }
+      setLoading(false);
+    };
+
+    fetchFavorites();
+  }, []);
+
+  const handleRemoveFromWishlist = async (productId: number) => {
+    const response = await removeProductFromWishlist(productId);
+    if (response.success) {
+      setFavorites(prev => prev.filter(p => p.id !== productId));
+      toast.success('Товар видалено з обраного.');
+    } else {
+      toast.error(response.errors?.[0] || 'Не вдалося видалити товар з обраного.');
+    }
+  };
+
+  const handleShare = () => {
+    setShareModalOpen(true);
+  };
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(`${window.location.origin}/wishlist/${shareableLink}`);
+    toast.success('Посилання скопійовано!');
+  };
+
+  if (loading) {
+    return <Loader />;
+  }
+
   return (
     <Container className="mt-10 mb-16">
-      <Text.Header className="mb-8">Обране</Text.Header>
-      {mockFavorites.length === 0 ? (
+      <div className="flex justify-between items-center mb-8">
+        <Text.Header>Обране</Text.Header>
+        {favorites.length > 0 && (
+          <Button variant="secondary" onClick={handleShare}>Поділитися</Button>
+        )}
+      </div>
+      {favorites.length === 0 ? (
         <div className="flex items-center justify-center h-64">
           <Text.Paragraph className="text-gray-500 text-lg">У вас ще немає обраних товарів</Text.Paragraph>
         </div>
       ) : (
         <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
-          {mockFavorites.map((item) => (
-            <ProductCard key={item.id} item={item} className="w-full" />
+          {favorites.map((item) => (
+            <WishlistProductCard key={item.id} product={item} onRemove={handleRemoveFromWishlist} />
           ))}
         </div>
+      )}
+      {isShareModalOpen && (
+        <Modal>
+          {() => (
+            <div className="p-8">
+              <Text.Header className="mb-4">Поділитися списком бажань</Text.Header>
+              <Text.Paragraph className="mb-4">Скопіюйте посилання та поділіться з друзями!</Text.Paragraph>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  readOnly
+                  value={`${window.location.origin}/wishlist/${shareableLink}`}
+                  className="w-full p-2 border rounded"
+                />
+                <Button variant="primary" onClick={handleCopyLink}>Копіювати</Button>
+              </div>
+              <Button variant="secondary" onClick={() => setShareModalOpen(false)} className="mt-4">Закрити</Button>
+            </div>
+          )}
+        </Modal>
       )}
     </Container>
   );

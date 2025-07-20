@@ -5,6 +5,7 @@ import { cn } from "@/utils/helpers";
 import { TProduct } from "@/utils/types";
 import { useCartContext } from "@/context/cart/context";
 import { useState } from "react";
+import { AddToWishlistButton } from "@/app/ui/components/AddToWishlistButton";
 
 type TProps = {
   product?: TProduct | null;
@@ -40,10 +41,13 @@ export const ControlButtons = ({ product, className, selectedAddons = [], setMai
     }
   };
 
+  // TODO: In cart display, show add-ons as related to the main product, not as separate products.
+
   return (
-    <div className={cn("flex gap-4", className)}>
+    <div className={cn("flex gap-4 items-center", className)}>
       <Button variant='primary' onClick={handleBuyNow} disabled={loading}>Купити зараз</Button>
       <Button variant='secondary' onClick={handleAddToCart} disabled={loading}>В кошик</Button>
+      {product && <AddToWishlistButton productId={product.id} />}
     </div>
   )
 }

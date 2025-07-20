@@ -1,0 +1,1 @@
+export { AddToWishlistButton } from './AddToWishlistButton';

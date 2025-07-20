@@ -12,7 +12,7 @@ type ButtonProps = {
   tag?: "button" | "div" | "a" | typeof Link;
   className?: string;
   type?: "button" | "submit" | "reset";
-  onClick?: () => void;
+  onClick?: any;
   href?: string;
   icon?: any;
   disabled?: boolean;

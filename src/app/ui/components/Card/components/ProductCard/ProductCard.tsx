@@ -75,7 +75,7 @@ export const ProductCard = ({
           </Text.Span>
 
           <Button
-            onClick={handleAddToCart}
+            onClick={(e: React.MouseEvent) => handleAddToCart(e)}
             variant="secondary"
             className="px-4 py-2 text-sm font-medium hover:bg-primary hover:text-white transition-all duration-200"
           >

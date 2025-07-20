@@ -10,6 +10,7 @@ import { ProductsContextProvider } from "@/context/product/ProductsContextProvid
 import { CartContextProvider } from "@/context/cart/CartContextProvider";
 import { ErrorBoundary } from "@/app/ui/components/ErrorBoundary";
 import { CartSidebar } from "@/app/cart/ui/components/CartSidebar";
+import { WishlistContextProvider } from "@/context/wishlist/WishlistContextProvider";
 
 import "./globals.css";
 
@@ -71,18 +72,20 @@ export default function RootLayout({
           <UserContextProvider>
             <ProductsContextProvider>
               <CartContextProvider>
-                <>{auth}</>
+                <WishlistContextProvider>
+                  <>{auth}</>
 
-                <Header />
+                  <Header />
 
-                <main className="flex-grow">
-                  {children}
-                </main>
+                  <main className="flex-grow">
+                    {children}
+                  </main>
 
-                <Footer />
+                  <Footer />
 
-                <Toaster />
-                <CartSidebar />
+                  <Toaster />
+                  <CartSidebar />
+                </WishlistContextProvider>
               </CartContextProvider>
             </ProductsContextProvider>
           </UserContextProvider>

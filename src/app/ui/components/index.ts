@@ -4,6 +4,7 @@ export { CartButton } from './CartButton';
 export { ProfileButton } from './ProfileButton';
 export { FavoriteButton } from './FavoriteButton';
 export { Separator } from './Separator';
+export { AddToWishlistButton } from './AddToWishlistButton';
 
 export { Logo } from './Logo';
 

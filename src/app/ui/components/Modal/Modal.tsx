@@ -48,7 +48,7 @@ export function Modal({ children }: ModalProps) {
         <div>{children(setScreen, screen)}</div>
       </section>
 
-      <div className="absolute w-full h-svh z-10 backdrop-blur-sm bg-black/50" />
+      <div className="absolute w-full h-svh inset-0 z-10 backdrop-blur-sm bg-black/50" />
     </>
   );
 }
