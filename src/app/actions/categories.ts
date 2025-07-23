@@ -1,66 +1,73 @@
-import { getAuthToken } from "@/utils/helpers";
+// tabletop-games-shop-fe/src/app/actions/categories.ts
+'use server';
 
-export const getAllCategories = async () => {
-  const authToken = getAuthToken();
-  const headers: HeadersInit = {
-    "Content-Type": "application/json",
-  };
-  if (authToken) {
-    headers["Authorization"] = `Bearer ${authToken}`;
-  }
+import { apiClient, ApiError } from "@/utils/apiClient";
+import { TCategory } from "@/utils/types";
+import { cookies } from 'next/headers'; // Import cookies
 
+export const getAllCategories = async () => { // Removed authToken parameter
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/api/v1/categories`, {
-      headers,
-    });
+    const authToken = cookies().get('authToken')?.value; // Get token from cookie
 
-    if (!response.ok) {
-      throw new Error('Failed to fetch categories');
+    const headers: HeadersInit = {};
+    if (authToken) {
+      headers['Authorization'] = `Bearer ${authToken}`;
     }
 
-    const data = await response.json();
+    const data = await apiClient.get<any>('/api/v1/categories', headers);
+
     return {
       success: true,
       errors: [],
-      data,
+      data: data?.content as TCategory[],
     };
   } catch (error: any) {
     console.error("Get All Categories Error:", error);
+    if (error instanceof ApiError) {
+      return {
+        success: false,
+        errors: error.data?.errors || [error.message],
+        data: [],
+      };
+    }
+
     return {
       success: false,
       errors: [error.message],
-      data: { content: [] },
+      data: [],
     };
   }
 };
 
-export const createCategory = async (data: any) => {
+export const createCategory = async (categoryData: Omit<TCategory, 'id'>) => { // Removed authToken parameter
   try {
-    const authToken = getAuthToken();
-    if (!authToken) {
-      throw new Error('You must be logged in to create a category.');
+    const authToken = cookies().get('authToken')?.value; // Get token from cookie
+
+    const headers: HeadersInit = {};
+    if (authToken) {
+      headers['Authorization'] = `Bearer ${authToken}`;
+    } else {
+      // If token is required for creation, and not found, redirect to login
+      // This is a server action, so redirect is appropriate.
+      // Alternatively, return an error and let the client handle it.
+      // For now, let's return an error for consistency with other actions.
+      return { success: false, errors: ['Authentication token not provided for category creation.'] };
     }
 
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/api/v1/categories`, {
-      method: 'POST',
-      headers: {
-        "Authorization": `Bearer ${authToken}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Failed to create category');
-    }
-
+    await apiClient.post<TCategory>('/api/v1/categories', categoryData, headers);
     return {
       success: true,
       errors: [],
     };
   } catch (error: any) {
     console.error("Create Category Error:", error);
+    if (error instanceof ApiError) {
+      return {
+        success: false,
+        errors: error.data?.errors || [error.message],
+      };
+    }
+
     return {
       success: false,
       errors: [error.message],

@@ -1,3 +1,5 @@
+export const API_URL = process.env.NEXT_PUBLIC_BASE_SERVER_URL!;
+
 export const SORTING_OPTIONS = [
     { value: 'averageRating,desc', label: 'За рейтингом' },
     { value: 'reviewCount,desc', label: 'За популярністю' },

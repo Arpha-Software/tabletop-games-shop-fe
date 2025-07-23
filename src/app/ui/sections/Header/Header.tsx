@@ -1,9 +1,10 @@
+// src/app/ui/sections/Header/Header.tsx
 import { FavoriteButton } from "@/app/ui/components";
 import { ProfileButton } from "@/app/ui/components";
 import { Navigation } from "@/app/ui/components";
 import { CartButton } from "@/app/ui/components";
 import { Container } from "@/app/ui/components";
-import { Search } from "@/app/ui/components";
+// import { Search } from "@/app/ui/components"; // Removed Search import
 import { Logo } from "@/app/ui/components";
 
 export const Header = () => {
@@ -16,7 +17,7 @@ export const Header = () => {
           <Navigation />
 
           <div className="flex gap-12">
-            <Search />
+            {/* <Search /> Removed Search component from Header */}
 
             <div className="flex">
               <ProfileButton />

@@ -1,69 +1,69 @@
-import { getAuthToken } from "@/utils/helpers";
+// tabletop-games-shop-fe/src/app/actions/productTypes.ts
+'use server';
 
-export const getAllProductTypes = async () => {
-  const authToken = getAuthToken();
-  const headers: HeadersInit = {
-    "Content-Type": "application/json",
-  };
-  if (authToken) {
-    headers["Authorization"] = `Bearer ${authToken}`;
-  }
+import { apiClient, ApiError } from "@/utils/apiClient";
+import { TProductType } from "@/utils/types"; // Import ProductType type
+import { cookies } from 'next/headers'; // Import cookies
 
+export const getAllProductTypes = async () => { // Removed authToken parameter
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/api/v1/product-types`, {
-      headers,
-    });
+    const authToken = cookies().get('authToken')?.value; // Get token from cookie
 
-    if (!response.ok) {
-      throw new Error('Failed to fetch product types');
+    const headers: HeadersInit = {};
+    if (authToken) {
+      headers['Authorization'] = `Bearer ${authToken}`;
     }
 
-    const data = await response.json();
+    const data = await apiClient.get<any>('/api/v1/product-types', headers);
     return {
       success: true,
       errors: [],
-      data,
+      data: data.content as TProductType[],
     };
   } catch (error: any) {
     console.error("Get All Product Types Error:", error);
+    if (error instanceof ApiError) {
+      return {
+        success: false,
+        errors: error.data?.errors || [error.message],
+        data: [],
+      };
+    }
     return {
       success: false,
       errors: [error.message],
-      data: { content: [] },
+      data: [],
     };
   }
 };
 
-export const createProductType = async (data: any) => {
+export const createProductType = async (productTypeData: Omit<TProductType, 'id'>) => { // Removed authToken parameter
   try {
-    const authToken = getAuthToken();
-    if (!authToken) {
-      throw new Error('You must be logged in to create a product type.');
+    const authToken = cookies().get('authToken')?.value; // Get token from cookie
+
+    const headers: HeadersInit = {};
+    if (authToken) {
+      headers['Authorization'] = `Bearer ${authToken}`;
+    } else {
+      return { success: false, errors: ['Authentication token not provided for product type creation.'] };
     }
 
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/api/v1/product-types`, {
-      method: 'POST',
-      headers: {
-        "Authorization": `Bearer ${authToken}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Failed to create product type');
-    }
-
+    await apiClient.post<TProductType>('/api/v1/product-types', productTypeData, headers);
     return {
       success: true,
       errors: [],
     };
   } catch (error: any) {
     console.error("Create Product Type Error:", error);
+    if (error instanceof ApiError) {
+      return {
+        success: false,
+        errors: error.data?.errors || [error.message],
+      };
+    }
     return {
       success: false,
       errors: [error.message],
     };
   }
-}; 
+};

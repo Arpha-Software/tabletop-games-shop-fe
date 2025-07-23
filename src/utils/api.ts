@@ -1,51 +1,44 @@
-import { getAuthToken } from './helpers';
+'use server';
+
+import { apiClient, ApiError } from './apiClient';
+import { cookies } from 'next/headers';
 
 export const changeUserInfo = async (data: any) => {
   try {
-    const authToken = getAuthToken();
-    console.log('authToken, authToken', authToken)
-    
+    const authToken = cookies().get('authToken')?.value;
+
     if (!authToken) {
       return { success: false, errors: ['Authentication token not found'] };
     }
 
-    // Format the request body according to API requirements
     const requestBody = {
       firstName: data.firstName,
       lastName: data.lastName,
-      phone: data.phone || null, // Make phone optional
+      phone: data.phone || null,
       isSubscribedToNewsLetter: data.isSubscribedToNewsLetter || false,
       subscribedToNewsLetter: data.subscribedToNewsLetter || false,
     };
-    
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/api/v1/users/${data.id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${authToken}`,
-      },
-      body: JSON.stringify(requestBody),
-    });
-    console.log('resp', response)
-    
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.log('Error response:', errorData);
-      
-      // Handle validation errors
-      if (errorData.violations) {
-        const errors = errorData.violations.map((violation: any) => violation.message);
-        return { success: false, errors };
-      }
-      
-      return { success: false, errors: [errorData.detail || 'Failed to update user'] };
-    }
+
+    const responseData = await apiClient.put(
+      `/api/v1/users/${data.id}`,
+      requestBody,
+      { 'Authorization': `Bearer ${authToken}` }
+    );
 
     return {
       success: true,
       errors: [],
+      data: responseData,
     };
   } catch (error: any) {
+    console.error('Error updating user info:', error);
+    if (error instanceof ApiError) {
+      return {
+        success: false,
+        errors: error.data?.errors || [error.message],
+      };
+    }
+
     return { success: false, errors: [error.message] };
   }
-}; 
+};

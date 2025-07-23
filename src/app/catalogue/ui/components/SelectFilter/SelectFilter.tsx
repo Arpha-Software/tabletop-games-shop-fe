@@ -1,7 +1,8 @@
+// src/app/catalogue/ui/components/SelectFilter/SelectFilter.tsx
 'use client';
 
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react'; // Import useEffect, useCallback
 
 import { cn } from '@/utils/helpers';
 
@@ -13,28 +14,38 @@ type TProps = {
     label: string;
   }[];
   className?: string;
-  onSortChange: (value: string) => void;
+  selectedValue: string; // Controlled prop for the selected value
+  onValueChange: (value: string) => void; // Callback to emit changes
 };
 
-export const SelectFilter = ({ options, className, onSortChange }: TProps) => {
+export const SelectFilter = ({ options, className, selectedValue, onValueChange }: TProps) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedValue, setSelectedValue] = useState(options[0]);
+  // Internal state for selected value, synced with prop
+  const [currentSelectedOption, setCurrentSelectedOption] = useState(() =>
+    options.find(option => option.value === selectedValue) || options[0]
+  );
 
-  const maxHeight = `${options.length * 48 + 2}px`;
+  // Sync internal state with external prop
+  useEffect(() => {
+    setCurrentSelectedOption(options.find(option => option.value === selectedValue) || options[0]);
+  }, [selectedValue, options]);
+
+
+  const maxHeight = `${options.length * 48 + 2}px`; // Assuming 48px per list item
   const style = {
     maxHeight: isOpen ? maxHeight : '0px',
     opacity: isOpen ? 1 : 0,
   }
 
-  const toggleDropdown = () => {
+  const toggleDropdown = useCallback(() => {
     setIsOpen((prev) => !prev);
-  };
+  }, []);
 
-  const handleOptionClick = (option: { value: string; label: string }) => {
-    setSelectedValue(option);
-    onSortChange(option.value);
+  const handleOptionClick = useCallback((option: { value: string; label: string }) => {
+    setCurrentSelectedOption(option);
+    onValueChange(option.value); // Emit the new value to the parent
     setIsOpen(false);
-  };
+  }, [onValueChange]);
 
   return (
     <div className={cn('relative w-64', className)}>
@@ -42,7 +53,7 @@ export const SelectFilter = ({ options, className, onSortChange }: TProps) => {
         className="border border-secondary-100 bg-secondary-50 rounded-lg px-4 py-3 cursor-pointer flex justify-between items-center"
         onClick={toggleDropdown}
       >
-        <span>{selectedValue.label}</span>
+        <span>{currentSelectedOption.label}</span>
         <div className={cn('transition-transform duration-300', isOpen ? 'rotate-0' : 'rotate-180')}>
           <Image src={ArrowIcon} width={16} height={16} alt="Arrow down" />
         </div>

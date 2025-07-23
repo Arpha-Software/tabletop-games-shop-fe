@@ -1,7 +1,7 @@
 import 'server-only';
 import { cookies } from 'next/headers';
 
-export async function createSession(accessToken: string, expiresAt: any) {
+export async function createSession(accessToken: string, expiresAt?: any) {
   console.log('access token settttttttttttt', accessToken)
   console.log('expiresAt settttttttttttt', expiresAt)
   await cookies().set(
@@ -10,7 +10,7 @@ export async function createSession(accessToken: string, expiresAt: any) {
     {
       httpOnly: true,
       secure: true,
-      expires: expiresAt,
+      expires: expiresAt || '',
       sameSite: 'lax',
       path: '/',
     }

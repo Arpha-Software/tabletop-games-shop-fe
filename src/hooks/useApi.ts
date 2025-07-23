@@ -1,5 +1,6 @@
+// src/hooks/useApi.ts
 import { useState, useCallback } from 'react';
-import { handleApiError } from '@/utils/helpers';
+// Removed `handleApiError` import if no longer needed for direct redirects from this hook
 
 interface UseApiOptions {
   onSuccess?: (data: any) => void;
@@ -10,43 +11,33 @@ export const useApi = (hookOptions: UseApiOptions = {}) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const getAuthToken = (): string | null => {
-    if (typeof window === 'undefined') {
-      return null;
-    }
-    return localStorage.getItem('authToken');
-  };
+  // Remove getAuthToken function
+  // const getAuthToken = (): string | null => { ... };
 
   const apiCall = useCallback(async (
-    url: string, 
+    url: string,
     fetchOptions: RequestInit = {}
   ) => {
     setLoading(true);
     setError(null);
 
     try {
-      const authToken = getAuthToken();
+      // Remove authToken retrieval and manual header setting.
+      // The browser will automatically send HttpOnly cookies with the fetch request.
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',
         ...(fetchOptions.headers as Record<string, string>),
       };
 
-      if (authToken) {
-        headers['Authorization'] = `Bearer ${authToken}`;
-      }
-
       const response = await fetch(url, {
         ...fetchOptions,
-        headers,
+        headers, // Use existing headers, no manual auth token addition here
       });
 
-      // Handle 401 errors by redirecting to login
       if (response.status === 401) {
-        if (typeof window !== 'undefined') {
-          localStorage.removeItem('authToken');
-          window.location.href = '/login';
-        }
-        return null;
+        // Throw an error here that your RootLayout's ErrorBoundary or a UserContext can catch
+        // and handle the redirect using useRouter.
+        throw new Error('Unauthorized');
       }
 
       if (!response.ok) {
@@ -54,7 +45,7 @@ export const useApi = (hookOptions: UseApiOptions = {}) => {
       }
 
       const data = await response.json();
-      
+
       if (hookOptions.onSuccess) {
         hookOptions.onSuccess(data);
       }
@@ -63,16 +54,16 @@ export const useApi = (hookOptions: UseApiOptions = {}) => {
     } catch (err: any) {
       const errorMessage = err.message || 'An error occurred';
       setError(errorMessage);
-      
+
       if (hookOptions.onError) {
         hookOptions.onError(err);
       }
-      
+
       return null;
     } finally {
       setLoading(false);
     }
-  }, []); // Remove hookOptions dependency
+  }, []);
 
   return {
     apiCall,
@@ -80,4 +71,4 @@ export const useApi = (hookOptions: UseApiOptions = {}) => {
     error,
     setError,
   };
-}; 
+};

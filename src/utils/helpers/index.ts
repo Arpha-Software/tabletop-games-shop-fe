@@ -1,3 +1,4 @@
+// src/utils/helpers/index.ts
 import { ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -9,24 +10,14 @@ export const generateStaticClass = (prefix: string, value: number) => `${prefix}
 
 export const handleAuthError = (error: any) => {
   if (error?.status === 401 || error?.statusCode === 401) {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('authToken');
-    }
-
-    window.location.href = '/login';
-    return true;
+    throw new Error('Unauthorized');
   }
   return false;
 };
 
 export const handleApiError = async (response: Response) => {
   if (response.status === 401) {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('authToken');
-    }
-
-    window.location.href = '/login';
-    return;
+    throw new Error('Unauthorized');
   }
 
   if (!response.ok) {
@@ -34,11 +25,4 @@ export const handleApiError = async (response: Response) => {
   }
 
   return response.json();
-};
-
-export const getAuthToken = (): string | null => {
-  if (typeof window === 'undefined') {
-    return null;
-  }
-  return localStorage.getItem('authToken');
 };

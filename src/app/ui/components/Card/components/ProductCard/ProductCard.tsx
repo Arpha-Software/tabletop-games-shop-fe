@@ -42,7 +42,7 @@ export const ProductCard = ({
             alt={name}
             width={600}
             height={600}
-            className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300" 
+            className="h-48 object-cover group-hover:scale-105 transition-transform duration-300" 
           />
           {/* Overlay for add to cart button */}
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />

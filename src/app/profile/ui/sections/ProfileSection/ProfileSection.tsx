@@ -1,3 +1,4 @@
+// src/app/profile/ui/sections/ProfileSection/ProfileSection.tsx
 'use client';
 
 import { logout } from '@/app/actions/auth';
@@ -5,136 +6,151 @@ import { changeUserInfo } from '@/utils/api';
 import { Button, Container, Input } from '@/app/ui/components';
 import { useUserContext } from '@/context/user/context';
 import { Text } from '@/utils/ui/Text';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import Image from 'next/image';
 import ProfileIcon from '@/public/icons/profile.svg';
+import { TUser } from '@/utils/types';
 
-const initialValue = {
-  id: '',
-  firstName: '',
-  lastName: '',
-  phoneNumber: '',
-  isSubscribedToNewsLetter: false,
-  subscribedToNewsLetter: false,
-  success: false,
-  errors: [],
+// Define the shape of the form state for better type safety and clarity
+interface ProfileFormState {
+  firstName: string;
+  lastName: string;
+  phone: string;
+  isSubscribedToNewsLetter: boolean;
+  subscribedToNewsLetter: boolean;
+}
+
+// Define the shape of the action result for consistency
+interface ActionResult {
+  success: boolean;
+  errors: string[];
+  data?: any;
 }
 
 export const ProfileSection = () => {
-  const { user, setUser } = useUserContext();
+  const { user, loading, setUser } = useUserContext();
 
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [isSubscribedToNewsLetter, setIsSubscribedToNewsLetter] = useState(false);
-  const [subscribedToNewsLetter, setSubscribedToNewsLetter] = useState(false);
+  const [formState, setFormState] = useState<ProfileFormState>({
+    firstName: '',
+    lastName: '',
+    phone: '',
+    isSubscribedToNewsLetter: false,
+    subscribedToNewsLetter: false,
+  });
+
   const [isEditing, setIsEditing] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
+  const [saveResult, setSaveResult] = useState<ActionResult | null>(null);
+  console.log('user', user)
 
   useEffect(() => {
     if (user) {
-      setFirstName(user.firstName || '');
-      setLastName(user.lastName || '');
-      setPhone(user.phone || '');
-      setIsSubscribedToNewsLetter(user.isSubscribedToNewsLetter || false);
-      setSubscribedToNewsLetter(user.subscribedToNewsLetter || false);
+      setFormState({
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        phone: user.phone || '',
+        isSubscribedToNewsLetter: user.isSubscribedToNewsLetter || false,
+        subscribedToNewsLetter: user.subscribedToNewsLetter || false,
+      });
+      setSaveResult(null);
     }
   }, [user]);
 
   useEffect(() => {
-    const originalFirstName = user?.firstName || '';
-    const originalLastName = user?.lastName || '';
-    const originalPhone = user?.phone || '';
-    const originalIsSubscribed = user?.isSubscribedToNewsLetter || false;
-    const originalSubscribed = user?.subscribedToNewsLetter || false;
-
-    setHasChanges(
-      firstName !== originalFirstName ||
-      lastName !== originalLastName ||
-      phone !== originalPhone ||
-      isSubscribedToNewsLetter !== originalIsSubscribed ||
-      subscribedToNewsLetter !== originalSubscribed
-    );
-  }, [firstName, lastName, phone, isSubscribedToNewsLetter, subscribedToNewsLetter, user]);
-
-  const [state, setState] = useState(initialValue);
-
-  const handleLogout = async () => {
-    localStorage.removeItem('authToken');
-    setUser(null);
-    await logout();
-  }
-
-  const handleSave = async () => {
-    const result = await changeUserInfo({
-      id: user?.id,
-      firstName,
-      lastName,
-      phone,
-      isSubscribedToNewsLetter,
-      subscribedToNewsLetter,
-    });
-    setState(result);
-    if (result.success) {
-      setIsEditing(false);
-      // Update the user context with new data
-      if (user) {
-        setUser({
-          ...user,
-          firstName,
-          lastName,
-          phone,
-          isSubscribedToNewsLetter,
-          subscribedToNewsLetter,
-        });
-      }
-    }
-  }
-
-  const handleCancel = () => {
     if (user) {
-      setFirstName(user.firstName || '');
-      setLastName(user.lastName || '');
-      setPhone(user.phone || '');
-      setIsSubscribedToNewsLetter(user.isSubscribedToNewsLetter || false);
-      setSubscribedToNewsLetter(user.subscribedToNewsLetter || false);
+      const originalFirstName = user.firstName || '';
+      const originalLastName = user.lastName || '';
+      const originalPhone = user.phone || '';
+      const originalIsSubscribed = user.isSubscribedToNewsLetter || false;
+      const originalSubscribed = user.subscribedToNewsLetter || false;
+
+      setHasChanges(
+        formState.firstName !== originalFirstName ||
+        formState.lastName !== originalLastName ||
+        formState.phone !== originalPhone ||
+        formState.isSubscribedToNewsLetter !== originalIsSubscribed ||
+        formState.subscribedToNewsLetter !== originalSubscribed
+      );
     }
-    setIsEditing(false);
-  }
+  }, [formState, user]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    handleSave();
-  }
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, value, type, checked } = e.target;
 
-  // Format phone number to xxx-xxx-xx-xx format
+    setFormState(prev => {
+      const newState = { ...prev };
+      if (id === 'isSubscribedToNewsLetter' || id === 'subscribedToNewsLetter') {
+        newState[id] = checked;
+      } else {
+        newState[id as Exclude<keyof ProfileFormState, 'isSubscribedToNewsLetter' | 'subscribedToNewsLetter'>] = value;
+      }
+
+      if (id === 'phone') {
+        newState.phone = formatPhoneNumber(value);
+      }
+      return newState;
+    });
+  }, []);
+
   const formatPhoneNumber = (value: string) => {
-    // Remove all non-digits
     const digits = value.replace(/\D/g, '');
-    
-    // Format as xxx-xxx-xx-xx
     if (digits.length <= 3) return digits;
     if (digits.length <= 6) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
     if (digits.length <= 8) return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`;
     return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6, 8)}-${digits.slice(8, 10)}`;
   };
 
-  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    switch (e.target.id) {
-      case "firstName":
-        setFirstName(e.target.value);
-        break;
-      case "lastName":
-        setLastName(e.target.value);
-        break;
-      case "phone":
-        const formattedPhone = formatPhoneNumber(e.target.value);
-        setPhone(formattedPhone);
-        break;
-      default:
-        break;
+  const handleLogout = async () => {
+    // Removed: localStorage.removeItem('authToken'); // This is now handled by the server action
+    setUser(null);
+    await logout();
+    // The redirect to /login is handled by the logout server action or a global error handler
+  };
+
+  const handleSave = async () => {
+    if (!user) {
+      setSaveResult({ success: false, errors: ['User data not available. Cannot save.'] });
+      return;
     }
-  }
+
+    const result = await changeUserInfo({
+      id: user.id,
+      ...formState,
+    });
+    setSaveResult(result);
+
+    if (result.success) {
+      setIsEditing(false);
+      setUser((prevUser) => {
+        if (prevUser) {
+          return {
+            ...prevUser,
+            ...formState,
+          };
+        }
+        return null;
+      });
+    }
+  };
+
+  const handleCancel = useCallback(() => {
+    if (user) {
+      setFormState({
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        phone: user.phone || '',
+        isSubscribedToNewsLetter: user.isSubscribedToNewsLetter || false,
+        subscribedToNewsLetter: user.subscribedToNewsLetter || false,
+      });
+    }
+    setIsEditing(false);
+    setSaveResult(null);
+  }, [user]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    handleSave();
+  };
 
   if (!user) {
     return (
@@ -205,8 +221,8 @@ export const ProfileSection = () => {
                   id='firstName'
                   placeholder="Введіть ваше ім'я"
                   type="text"
-                  value={firstName}
-                  onChange={onChange}
+                  value={formState.firstName}
+                  onChange={handleInputChange}
                   disabled={!isEditing}
                   className={!isEditing ? "bg-gray-50 cursor-not-allowed" : ""}
                 />
@@ -220,8 +236,8 @@ export const ProfileSection = () => {
                   id='lastName'
                   placeholder="Введіть ваше прізвище"
                   type="text"
-                  value={lastName}
-                  onChange={onChange}
+                  value={formState.lastName}
+                  onChange={handleInputChange}
                   disabled={!isEditing}
                   className={!isEditing ? "bg-gray-50 cursor-not-allowed" : ""}
                 />
@@ -236,8 +252,8 @@ export const ProfileSection = () => {
                 id='phone'
                 placeholder="xxx-xxx-xx-xx"
                 type="tel"
-                value={phone}
-                onChange={onChange}
+                value={formState.phone}
+                onChange={handleInputChange}
                 disabled={!isEditing}
                 className={!isEditing ? "bg-gray-50 cursor-not-allowed" : ""}
               />
@@ -246,13 +262,13 @@ export const ProfileSection = () => {
 
             <div className="space-y-4">
               <Text.Header className="text-lg">Налаштування підписки</Text.Header>
-              
+
               <div className="flex items-center space-x-3">
                 <input
                   type="checkbox"
                   id="isSubscribedToNewsLetter"
-                  checked={isSubscribedToNewsLetter}
-                  onChange={(e) => setIsSubscribedToNewsLetter(e.target.checked)}
+                  checked={formState.isSubscribedToNewsLetter}
+                  onChange={handleInputChange}
                   disabled={!isEditing}
                   className="h-4 w-4 text-primary border-gray-300 rounded focus:ring-primary focus:ring-2"
                 />
@@ -265,8 +281,8 @@ export const ProfileSection = () => {
                 <input
                   type="checkbox"
                   id="subscribedToNewsLetter"
-                  checked={subscribedToNewsLetter}
-                  onChange={(e) => setSubscribedToNewsLetter(e.target.checked)}
+                  checked={formState.subscribedToNewsLetter}
+                  onChange={handleInputChange}
                   disabled={!isEditing}
                   className="h-4 w-4 text-primary border-gray-300 rounded focus:ring-primary focus:ring-2"
                 />
@@ -276,7 +292,7 @@ export const ProfileSection = () => {
               </div>
             </div>
 
-            {state.errors.length > 0 && (
+            {saveResult?.errors && saveResult.errors.length > 0 && (
               <div className="bg-red-50 border border-red-200 rounded-lg p-4">
                 <div className="flex">
                   <div className="ml-3">
@@ -285,7 +301,7 @@ export const ProfileSection = () => {
                     </h3>
                     <div className="mt-2 text-sm text-red-700">
                       <ul className="list-disc pl-5 space-y-1">
-                        {state.errors.map((error, index) => (
+                        {saveResult.errors.map((error, index) => (
                           <li key={index}>{error}</li>
                         ))}
                       </ul>
@@ -295,7 +311,7 @@ export const ProfileSection = () => {
               </div>
             )}
 
-            {state.success && (
+            {saveResult?.success && (
               <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                 <div className="flex">
                   <div className="ml-3">
@@ -355,5 +371,5 @@ export const ProfileSection = () => {
         </div>
       </div>
     </Container>
-  )
-}
+  );
+};

@@ -10,10 +10,8 @@ export async function POST(req: NextRequest) {
 
     const expiresAt = new Date(accessTokenExpirationDate);
 
-    // Create a response object
     const response = NextResponse.json({ success: true });
 
-    // Set the cookie on the response
     await response.cookies.set(
       'authToken',
       accessToken,
@@ -23,15 +21,9 @@ export async function POST(req: NextRequest) {
         expires: expiresAt,
         sameSite: 'lax',
         path: '/',
-        domain: process.env.NODE_ENV === 'production' ? '.your-production-domain.com' : 'localhost',
       }
     );
 
-    // Add CORS headers to the response
-    response.headers.set('Access-Control-Allow-Origin', 'http://localhost:3000');
-    response.headers.set('Access-Control-Allow-Credentials', 'true');
-    
-    // For debugging: log the headers to see the Set-Cookie header
     console.log('Response headers:', response.headers);
 
     return response;

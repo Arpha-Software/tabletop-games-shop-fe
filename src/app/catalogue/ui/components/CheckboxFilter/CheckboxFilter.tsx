@@ -1,6 +1,7 @@
+// src/app/catalogue/ui/components/CheckboxFilter/CheckboxFilter.tsx
 'use client';
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react"; // Import useEffect and useCallback
 
 import { cn } from "@/utils/helpers";
 
@@ -14,7 +15,8 @@ type TProps = {
     value: string;
   }[];
   isOpenDefault?: boolean;
-  chosenValue?: string[];
+  chosenValue?: string[]; // Controlled prop for selected values
+  onChange: (selectedIds: string[]) => void; // Callback to emit changes
 };
 
 const CheckboxFilterHeader = ({
@@ -44,25 +46,26 @@ const CheckboxFilterHeader = ({
 
 const CheckboxFilterContent = ({
   options,
-  chosenValue = [],
-  onChange,
+  chosenValue = [], // Use chosenValue prop
+  onChange, // Use onChange prop
 }: {
   options: { id: string; value: string }[];
-  chosenValue?: string[];
-  onChange: (id: string) => void;
+  chosenValue: string[]; // Explicitly chosenValue is always an array
+  onChange: (id: string, isChecked: boolean) => void; // Callback now includes isChecked
 }) => {
   return (
     <div>
       {options.map((item) => (
-        <div key={item.id}>
+        <div key={item.id} className="flex items-center mb-2"> {/* Added flex and margin for better layout */}
           <input
             type="checkbox"
             id={item.id}
-            value={item.value}
+            value={item.id} // Use id as value for checkbox
             checked={chosenValue.includes(item.id)}
-            onChange={() => onChange(item.id)}
+            onChange={(e) => onChange(item.id, e.target.checked)} // Pass id and checked state
+            className="h-4 w-4 text-primary border-gray-300 rounded focus:ring-primary focus:ring-2 cursor-pointer" // Tailwind for styling
           />
-          <label className="ml-3" htmlFor={item.id}>
+          <label className="ml-3 text-gray-700 cursor-pointer" htmlFor={item.id}> {/* Tailwind for styling */}
             {item.value}
           </label>
         </div>
@@ -71,26 +74,42 @@ const CheckboxFilterContent = ({
   );
 };
 
-export const CheckboxFilter = ({ title, options, chosenValue = [], isOpenDefault = false }: TProps) => {
+export const CheckboxFilter = ({ title, options, chosenValue = [], isOpenDefault = false, onChange }: TProps) => {
   const [isOpen, setIsOpen] = useState(isOpenDefault);
-  const [selectedValues, setSelectedValues] = useState<string[]>(chosenValue);
+  // selectedValues is now derived from chosenValue prop
+  // const [selectedValues, setSelectedValues] = useState<string[]>(chosenValue);
 
-  const handleToggle = () => {
-    setIsOpen(!isOpen);
-  };
+  // Sync internal isOpen state with prop if it's meant to be controlled externally
+  // useEffect(() => {
+  //   setIsOpen(isOpenDefault);
+  // }, [isOpenDefault]);
 
-  const handleCheckboxChange = (id: string) => {
-    setSelectedValues((prevValues) =>
-      prevValues.includes(id)
-        ? prevValues.filter((value) => value !== id)
-        : [...prevValues, id]
-    );
-  };
+  // If chosenValue can change externally, you might need an effect to sync it
+  // But typically, the parent will pass the updated chosenValue, and this component just renders it.
+
+  const handleToggle = useCallback(() => {
+    setIsOpen(prev => !prev);
+  }, []);
+
+  const handleCheckboxChange = useCallback((id: string, isChecked: boolean) => {
+    // Determine new set of selected values
+    const newSelectedValues = isChecked
+      ? [...chosenValue, id]
+      : chosenValue.filter((value) => value !== id);
+
+    onChange(newSelectedValues); // Emit the new array of selected IDs to the parent
+  }, [chosenValue, onChange]); // Depend on chosenValue and onChange
 
   return (
     <div className="py-4">
       <CheckboxFilterHeader title={title} isOpen={isOpen} onToggle={handleToggle} />
-      {isOpen && <CheckboxFilterContent options={options} chosenValue={selectedValues} onChange={handleCheckboxChange}  />}
+      {isOpen && (
+        <CheckboxFilterContent
+          options={options}
+          chosenValue={chosenValue} // Pass the controlled prop
+          onChange={handleCheckboxChange}
+        />
+      )}
     </div>
   );
 };

@@ -10,6 +10,7 @@ import { TUser } from "@/utils/types";
 export type TUserContext = {
   user?: TUser | null;
   isAdmin: boolean;
+  loading: boolean;
   setUser: Dispatch<SetStateAction<TUser | null>>
 }
 

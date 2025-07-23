@@ -1,7 +1,9 @@
-import { getAuthToken } from "@/utils/helpers";
+'use server';
+
+import { cookies } from 'next/headers';
 
 export const getWishlist = async () => {
-  const authToken = getAuthToken();
+  const authToken = cookies().get('authToken')?.value;
 
   if (!authToken) {
     return { success: false, errors: ['Authentication token not found.'] };
@@ -22,7 +24,7 @@ export const getWishlist = async () => {
 };
 
 export const addProductToWishlist = async (productId: number) => {
-  const authToken = getAuthToken();
+  const authToken = cookies().get('authToken')?.value; // Get token from cookie
 
   if (!authToken) {
     return { success: false, errors: ['Authentication token not found.'] };
@@ -44,7 +46,7 @@ export const addProductToWishlist = async (productId: number) => {
 };
 
 export const removeProductFromWishlist = async (productId: number) => {
-  const authToken = getAuthToken();
+  const authToken = cookies().get('authToken')?.value;
   if (!authToken) {
     return { success: false, errors: ['Authentication token not found.'] };
   }

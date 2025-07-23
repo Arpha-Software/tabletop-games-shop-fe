@@ -1,36 +1,54 @@
-import { getAuthToken } from "@/utils/helpers";
+'use server';
+
+import { apiClient, ApiError } from "@/utils/apiClient";
+import { TProduct } from "@/utils/types";
+import { redirect } from 'next/navigation';
+import { cookies } from 'next/headers';
+
+interface ProductFilters {
+  page?: number;
+  sort?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  categories?: string[];
+  genres?: string[];
+  productTypeIds?: string[];
+  searchQuery?: string;
+  complexity?: number;
+  components?: string;
+  language?: string;
+  minPlayerNumber?: string;
+  type?: string;
+}
 
 export const createProduct = async (productData: any) => {
   try {
-    const authToken = getAuthToken();
-    if (!authToken) {
-      return { success: false, errors: ['Authentication token not found.'] };
+    const authToken = cookies().get('authToken')?.value;
+
+    const headers: HeadersInit = {};
+    if (authToken) {
+      headers['Authorization'] = `Bearer ${authToken}`;
+    } else {
+      return { success: false, errors: ['Authentication token not provided for product creation.'] };
     }
 
-    const response: Response = await fetch(`${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/api/v1/products`, {
-      method: 'POST',
-      headers: {
-        "Authorization": `Bearer ${authToken}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(productData),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      return {
-        success: false,
-        errors: errorData.errors || ['Failed to create product'],
-      };
-    }
-
-    const responseData = await response.json();
+    const responseData = await apiClient.post<TProduct>('/api/v1/products', productData, headers);
     return {
       success: true,
       errors: [],
       data: responseData,
     };
   } catch (error: any) {
+    console.error('Error creating product:', error);
+    if (error instanceof ApiError) {
+      if (error.statusCode === 401) {
+        redirect('/login');
+      }
+      return {
+        success: false,
+        errors: error.data?.errors || [error.message],
+      };
+    }
     return {
       success: false,
       errors: [error.message],
@@ -38,37 +56,117 @@ export const createProduct = async (productData: any) => {
   }
 };
 
-export const getAllProducts = async (page: number, sort: string = "id,asc") => {
+export const getAllProducts = async (filters: ProductFilters) => { // Removed authToken parameter
   try {
-    const authToken = getAuthToken();
+    const authToken = cookies().get('authToken')?.value; // Get token from cookie
 
-    const headers: HeadersInit = {
-        "Content-Type": "application/json",
-    };
-
+    const headers: HeadersInit = {};
     if (authToken) {
-        headers["Authorization"] = `Bearer ${authToken}`;
+      headers['Authorization'] = `Bearer ${authToken}`;
     }
 
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/api/v1/products?page=${page}&sort=${sort}`, {
-        headers,
-    });
+    // Construct query parameters from filters
+    const queryParams = new URLSearchParams();
+    if (filters.page !== undefined) queryParams.append('page', filters.page.toString());
+    if (filters.sort) queryParams.append('sort', filters.sort);
+    if (filters.minPrice !== undefined) queryParams.append('minPrice', filters.minPrice.toString());
+    if (filters.maxPrice !== undefined) queryParams.append('maxPrice', filters.maxPrice.toString());
+    filters.categories?.forEach(id => queryParams.append('categories', id));
+    filters.genres?.forEach(id => queryParams.append('genres', id));
+    filters.productTypeIds?.forEach(id => queryParams.append('productTypeIds', id));
+    if (filters.searchQuery) queryParams.append('searchQuery', filters.searchQuery);
 
-    if (!response.ok) {
-      return {
-        success: false,
-        errors: ['Failed to fetch products'],
-        data: null,
-      };
-    }
+    const queryString = queryParams.toString();
+    const endpoint = `/api/v1/products${queryString ? `?${queryString}` : ''}`;
 
-    const data = await response.json();
+    const data = await apiClient.get<{ content: TProduct[], totalPages: number }>(endpoint, headers);
     return {
       success: true,
       errors: [],
       data,
     };
   } catch (error: any) {
+    console.error('Error fetching all products:', error);
+    if (error instanceof ApiError) {
+      if (error.statusCode === 401) {
+        redirect('/login'); // Perform server-side redirect for 401
+      }
+      return {
+        success: false,
+        errors: error.data?.errors || [error.message],
+        data: { content: [], totalPages: 0 }, // Ensure consistent return type
+      };
+    }
+    return {
+      success: false,
+      errors: [error.message],
+      data: { content: [], totalPages: 0 }, // Ensure consistent return type
+    };
+  }
+};
+
+export const getProductsRecommendations = async (page: number) => { // Removed authToken parameter
+  try {
+    const authToken = cookies().get('authToken')?.value; // Get token from cookie
+
+    const headers: HeadersInit = {};
+    if (authToken) {
+      headers['Authorization'] = `Bearer ${authToken}`;
+    }
+
+    const data = await apiClient.get<{ content: TProduct[], totalPages: number }>(`/api/v1/products/recommendations?page=${page}`, headers);
+    return {
+      success: true,
+      errors: [],
+      data,
+    };
+  } catch (error: any) {
+    console.error('Error fetching product recommendations:', error);
+    if (error instanceof ApiError) {
+      if (error.statusCode === 401) {
+        redirect('/login'); // Perform server-side redirect for 401
+      }
+      return {
+        success: false,
+        errors: error.data?.errors || [error.message],
+        data: { content: [], totalPages: 0 },
+      };
+    }
+    return {
+      success: false,
+      errors: [error.message],
+      data: { content: [], totalPages: 0 },
+    };
+  }
+};
+
+export const getProductById = async (id: string) => { // Removed authToken parameter
+  try {
+    const authToken = cookies().get('authToken')?.value; // Get token from cookie
+
+    const headers: HeadersInit = {};
+    if (authToken) {
+      headers['Authorization'] = `Bearer ${authToken}`;
+    }
+
+    const data = await apiClient.get<TProduct>(`/api/v1/products/${id}`, headers);
+    return {
+      success: true,
+      errors: [],
+      data,
+    };
+  } catch (error: any) {
+    console.error(`Error fetching product with ID ${id}:`, error);
+    if (error instanceof ApiError) {
+      if (error.statusCode === 401) {
+        redirect('/login'); // Perform server-side redirect for 401
+      }
+      return {
+        success: false,
+        errors: error.data?.errors || [error.message],
+        data: null,
+      };
+    }
     return {
       success: false,
       errors: [error.message],
@@ -77,117 +175,32 @@ export const getAllProducts = async (page: number, sort: string = "id,asc") => {
   }
 };
 
-export const getProductsRecommendations = async (page: number) => {
+export const deleteProduct = async (id: number) => { // Removed authToken parameter
   try {
-    const authToken = getAuthToken();
+    const authToken = cookies().get('authToken')?.value; // Get token from cookie
 
-    const headers: HeadersInit = {
-      "Content-Type": "application/json",
-    };
-
+    const headers: HeadersInit = {};
     if (authToken) {
-      headers["Authorization"] = `Bearer ${authToken}`;
+      headers['Authorization'] = `Bearer ${authToken}`;
+    } else {
+      return { success: false, errors: ['Authentication token not provided for product deletion.'] };
     }
 
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/api/v1/products/recommendations?page=${page}`, {
-      headers,
-    });
-
-    if (!response.ok) {
+    await apiClient.delete<void>(`/api/v1/products/${id}`, headers);
+    return {
+      success: true,
+      errors: [],
+    };
+  } catch (error: any) {
+    if (error instanceof ApiError) {
+      if (error.statusCode === 401) {
+        redirect('/login');
+      }
       return {
         success: false,
-        errors: ['Failed to fetch products'],
-        data: null,
+        errors: error.data?.errors || [error.message],
       };
     }
-
-    const data = await response.json();
-    return {
-      success: true,
-      errors: [],
-      data,
-    };
-  } catch (error: any) {
-    return {
-      success: false,
-      errors: [error.message],
-      data: null,
-    };
-  }
-};
-
-
-export const getProductById = async (id: string) => {
-  try {
-    const authToken = getAuthToken();
-
-    const headers: HeadersInit = {
-        "Content-Type": "application/json",
-    };
-    if (authToken) {
-        headers["Authorization"] = `Bearer ${authToken}`;
-    }
-
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/api/v1/products/${id}`, {
-        headers,
-    });
-
-    if (!response.ok) {
-      return {
-        success: false,
-        errors: ['Failed to fetch product'],
-        data: null,
-      };
-    }
-
-    const data = await response.json();
-
-    return {
-      success: true,
-      errors: [],
-      data,
-    };
-  } catch (error: any) {
-    return {
-      success: false,
-      errors: [error.message],
-      data: null,
-    };
-  }
-};
-
-export const deleteProduct = async (id: number) => {
-  try {
-    const authToken = getAuthToken();
-    if (!authToken) {
-      return { success: false, errors: ['Authentication token not found.'] };
-    }
-
-    const response: Response = await fetch(`${process.env.NEXT_PUBLIC_BASE_SERVER_URL}/api/v1/products/${id}`, {
-      method: 'DELETE',
-      headers: {
-        "Authorization": `Bearer ${authToken}`,
-      },
-    });
-
-    if (!response.ok) {
-        let errorData;
-        try {
-            errorData = await response.json();
-        } catch (e) {
-            errorData = { errors: [`${response.status}: ${response.statusText}`] }
-        }
-        return {
-            success: false,
-            errors: errorData.errors || ['Failed to delete product'],
-        };
-    }
-
-    return {
-      success: true,
-      errors: [],
-    };
-  } catch (error: any) {
     return {
       success: false,
       errors: [error.message],
