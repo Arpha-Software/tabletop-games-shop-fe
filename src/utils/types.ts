@@ -14,9 +14,10 @@ export type TPageable = {
 export type TUser = {
   id: number;
   firstName: string;
+  middleName?: string;
   lastName?: string;
   email: string;
-  phone?: string;
+  phoneNumber?: string;
   role: string;
   isSubscribedToNewsLetter?: boolean;
   subscribedToNewsLetter?: boolean;

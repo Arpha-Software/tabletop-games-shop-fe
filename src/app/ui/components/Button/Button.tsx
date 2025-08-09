@@ -16,6 +16,7 @@ type ButtonProps = {
   href?: string;
   icon?: any;
   disabled?: boolean;
+  form?: string;             // <<<<<< додай це
   children: ReactNode;
 }
 
@@ -29,6 +30,7 @@ export const Button = ({
   icon,
   disabled,
   onClick,
+  form,                 // <<<<<< зчитуємо
   ...props
 }: ButtonProps) => {
   const isLink = Tag === Link;
@@ -37,14 +39,12 @@ export const Button = ({
     return (
       <Tag
         {...props}
-        className={cn(
-          buttonVariants({ variant }),
-          className
-        )}
+        className={cn(buttonVariants({ variant }), className)}
         type={type}
         href={href || ''}
         onClick={onClick}
         disabled={disabled}
+        form={form}       // <<<<<< прокидуємо
       >
         <Image src={icon} alt="icon" />
         <Text.Span>{children}</Text.Span>
@@ -55,10 +55,7 @@ export const Button = ({
   return isLink && href ? (
     <Link
       href={href}
-      className={cn(
-        buttonVariants({ variant }),
-        className
-      )}
+      className={cn(buttonVariants({ variant }), className)}
       onClick={onClick}
       {...props}
     >
@@ -67,14 +64,12 @@ export const Button = ({
   ) : (
     <Tag
       {...props}
-      className={cn(
-        buttonVariants({ variant }),
-        className
-      )}
+      className={cn(buttonVariants({ variant }), className)}
       type={type}
       href={href || ''}
       onClick={onClick}
       disabled={disabled}
+      form={form}       // <<<<<< прокидуємо
     >
       <Text.Span>{children}</Text.Span>
     </Tag>

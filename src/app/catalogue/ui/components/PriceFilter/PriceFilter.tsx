@@ -1,4 +1,3 @@
-// src/app/catalogue/ui/components/PriceFilter/PriceFilter.tsx
 'use client';
 
 import { useCallback, useEffect, useState, useRef } from "react";
@@ -7,15 +6,21 @@ import "./PriceFilter.scss";
 import { cn } from "@/utils/helpers";
 
 type TProps = {
-  min: number; // Absolute min value for the range slider
-  max: number; // Absolute max value for the range slider
+  min: number;
+  max: number;
   className?: string;
-  minVal: number; // Current controlled min value
-  maxVal: number; // Current controlled max value
-  onMinChange: (value: number) => void; // Callback for min value change
-  onMaxChange: (value: number) => void; // Callback for max value change
-  onApply?: (min: number, max: number) => void; // Optional callback for applying filter
-}
+  minVal: number;
+  maxVal: number;
+  onApply: (min: number, max: number) => void;
+};
+
+// крок у гривнях з копійками
+const STEP = 0.01;
+
+// clamp helper
+const clamp = (v: number, lo: number, hi: number) => Math.min(Math.max(v, lo), hi);
+// округляємо до 2 знаків, щоб уникати 3998.45999999
+const round2 = (v: number) => Math.round(v * 100) / 100;
 
 export const PriceFilter = ({
   min,
@@ -23,119 +28,133 @@ export const PriceFilter = ({
   className,
   minVal,
   maxVal,
-  onMinChange,
-  onMaxChange,
   onApply,
 }: TProps) => {
-  // Internal state for slider and input values, synced with props
-  const [currentMinVal, setCurrentMinVal] = useState(minVal);
-  const [currentMaxVal, setCurrentMaxVal] = useState(maxVal);
+  const [currentMinVal, setCurrentMinVal] = useState(round2(clamp(minVal, min, max)));
+  const [currentMaxVal, setCurrentMaxVal] = useState(round2(clamp(maxVal, min, max)));
 
-  const minValRef = useRef(minVal);
-  const maxValRef = useRef(maxVal);
+  const minValRef = useRef(currentMinVal);
+  const maxValRef = useRef(currentMaxVal);
   const range = useRef<HTMLDivElement>(null);
 
-  // Sync internal state with external props
+  // sync з батьком
   useEffect(() => {
-    setCurrentMinVal(minVal);
-  }, [minVal]);
+    const v = round2(clamp(minVal, min, max));
+    setCurrentMinVal(v);
+    minValRef.current = v;
+  }, [min, max, minVal]);
 
   useEffect(() => {
-    setCurrentMaxVal(maxVal);
-  }, [maxVal]);
+    const v = round2(clamp(maxVal, min, max));
+    setCurrentMaxVal(v);
+    maxValRef.current = v;
+  }, [min, max, maxVal]);
 
   const getPercent = useCallback(
-    (value: number) => Math.round(((value - min) / (max - min)) * 100),
+    (value: number) => {
+      const p = ((value - min) / (max - min)) * 100;
+      return clamp(p, 0, 100); // без Math.round — плавніше і без обрізання
+    },
     [min, max]
   );
 
-  const handleMinInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const value = Math.min(Number(event.target.value), currentMaxVal - 1);
-    setCurrentMinVal(value);
-    minValRef.current = value;
-    onMinChange(value); // Emit change immediately
+  // текстові інпути
+  const handleMinInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = Number(e.target.value);
+    const v = round2(clamp(raw, min, currentMaxVal - STEP));
+    setCurrentMinVal(v);
+    minValRef.current = v;
   };
 
-  const handleMaxInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const value = Number(event.target.value);
-    if (value > max) return; // Prevent exceeding absolute max
-
-    const newValue = Math.max(value, currentMinVal + 1); // Ensure max is always > min
-    setCurrentMaxVal(newValue);
-    maxValRef.current = newValue;
-    onMaxChange(newValue); // Emit change immediately
+  const handleMaxInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = Number(e.target.value);
+    // не "return", а клампимо до max
+    const v = round2(clamp(raw, currentMinVal + STEP, max));
+    setCurrentMaxVal(v);
+    maxValRef.current = v;
   };
 
-  // Update slider range position for min value
+  // оновлення видимого діапазону
   useEffect(() => {
     const minPercent = getPercent(currentMinVal);
     const maxPercent = getPercent(maxValRef.current);
-
     if (range.current) {
       range.current.style.left = `${minPercent}%`;
       range.current.style.width = `${maxPercent - minPercent}%`;
     }
   }, [currentMinVal, getPercent]);
 
-  // Update slider range position for max value
   useEffect(() => {
     const minPercent = getPercent(minValRef.current);
     const maxPercent = getPercent(currentMaxVal);
-
     if (range.current) {
       range.current.style.width = `${maxPercent - minPercent}%`;
     }
   }, [currentMaxVal, getPercent]);
 
-  const handleApplyClick = () => {
-    if (onApply) {
-      onApply(currentMinVal, currentMaxVal);
-    }
-  };
+  const handleApplyClick = () => onApply(currentMinVal, currentMaxVal);
 
   return (
-    <section className={cn("max-w-64 w-full", className)}>
+    <section className={cn("pricefilter max-w-64 w-full", className)}>
       <p className="mb-4 font-medium">Ціна</p>
-      <div className="flex items-center justify-between gap-2 mb-6 mx-auto">
-        <Input className="max-w-17 px-2" onChange={handleMinInputChange} value={currentMinVal}/>
+
+      <div className="flex items-center justify-between gap-2 mb-6">
+        <Input
+          className="max-w-17 px-2"
+          value={currentMinVal}
+          inputMode="decimal"
+          onChange={handleMinInputChange}
+        />
         <p> - </p>
-        <Input className="max-w-17 px-2" onChange={handleMaxInputChange} value={currentMaxVal}/>
-        <Button className="w-17 px-4 ml-3" onClick={handleApplyClick}>Ок</Button> {/* Apply button */}
+        <Input
+          className="max-w-17 px-2"
+          value={currentMaxVal}
+          inputMode="decimal"
+          onChange={handleMaxInputChange}
+        />
+        <Button className="w-17 px-4 ml-3" onClick={handleApplyClick}>
+          Ок
+        </Button>
       </div>
 
       <div className="container">
-        <input
-          type="range"
-          min={min}
-          max={max}
-          value={currentMinVal}
-          onChange={(event) => {
-            const value = Math.min(Number(event.target.value), currentMaxVal - 1);
-            setCurrentMinVal(value);
-            minValRef.current = value;
-            onMinChange(value); // Emit change immediately
-          }}
-          className="thumb thumb--left"
-          style={{ zIndex: currentMinVal > max - 100 ? "5" : undefined }}
-        />
-
-        <input
-          type="range"
-          min={min}
-          max={max}
-          value={currentMaxVal}
-          onChange={(event) => {
-            const value = Math.max(Number(event.target.value), currentMinVal + 1);
-            setCurrentMaxVal(value);
-            maxValRef.current = value;
-            onMaxChange(value); // Emit change immediately
-          }}
-          className="thumb thumb--right"
-        />
-
         <div className="slider">
           <div className="slider__track" />
           <div ref={range} className="slider__range" />
+
+          {/* Лівий повзунок */}
+          <input
+            type="range"
+            min={min}
+            max={max}
+            step={STEP}
+            value={currentMinVal}
+            onChange={(e) => {
+              const raw = Number(e.target.value);
+              const v = round2(clamp(raw, min, currentMaxVal - STEP));
+              setCurrentMinVal(v);
+              minValRef.current = v;
+            }}
+            className="thumb thumb--left"
+            aria-label="Мінімальна ціна"
+          />
+
+          {/* Правий повзунок */}
+          <input
+            type="range"
+            min={min}
+            max={max}
+            step={STEP}
+            value={currentMaxVal}
+            onChange={(e) => {
+              const raw = Number(e.target.value);
+              const v = round2(clamp(raw, currentMinVal + STEP, max));
+              setCurrentMaxVal(v);
+              maxValRef.current = v;
+            }}
+            className="thumb thumb--right"
+            aria-label="Максимальна ціна"
+          />
         </div>
       </div>
     </section>

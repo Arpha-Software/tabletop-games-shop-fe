@@ -1,7 +1,7 @@
 // tabletop-games-shop-fe/src/app/actions/categories.ts
 'use server';
 
-import { apiClient, ApiError } from "@/utils/apiClient";
+import { apiClient } from "@/utils/apiClient";
 import { TCategory } from "@/utils/types";
 import { cookies } from 'next/headers'; // Import cookies
 
@@ -23,7 +23,7 @@ export const getAllCategories = async () => { // Removed authToken parameter
     };
   } catch (error: any) {
     console.error("Get All Categories Error:", error);
-    if (error instanceof ApiError) {
+    if (error) {
       return {
         success: false,
         errors: error.data?.errors || [error.message],
@@ -61,7 +61,7 @@ export const createCategory = async (categoryData: Omit<TCategory, 'id'>) => { /
     };
   } catch (error: any) {
     console.error("Create Category Error:", error);
-    if (error instanceof ApiError) {
+    if (error) {
       return {
         success: false,
         errors: error.data?.errors || [error.message],

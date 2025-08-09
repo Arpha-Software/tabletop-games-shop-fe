@@ -1,6 +1,6 @@
 'use server';
 
-import { apiClient, ApiError } from './apiClient';
+import { apiClient } from './apiClient';
 import { cookies } from 'next/headers';
 
 export const changeUserInfo = async (data: any) => {
@@ -32,7 +32,7 @@ export const changeUserInfo = async (data: any) => {
     };
   } catch (error: any) {
     console.error('Error updating user info:', error);
-    if (error instanceof ApiError) {
+    if (error) {
       return {
         success: false,
         errors: error.data?.errors || [error.message],

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Container, Button } from '@/app/ui/components';
 import { Text } from '@/utils/ui/Text';
 import { ProductsTab, GenresTab, CategoriesTab, OrdersTab, UsersTab, ProductTypesTab } from './ui/components';
+import { BlogTab } from './ui/components/BlogTab/BlogTab';
 
 const TABS = [
   { key: 'products', label: 'Товари' },
@@ -12,6 +13,7 @@ const TABS = [
   { key: 'categories', label: 'Категорії' },
   { key: 'orders', label: 'Замовлення' },
   { key: 'users', label: 'Користувачі' },
+  { key: 'blog', label: 'Блог' },
 ];
 
 export default function AdminPanel() {
@@ -31,6 +33,8 @@ export default function AdminPanel() {
         return <OrdersTab />;
       case 'users':
         return <UsersTab />;
+      case 'blog':
+        return <BlogTab />;
       default:
         return <ProductsTab />;
     }
@@ -56,4 +60,4 @@ export default function AdminPanel() {
       </div>
     </Container>
   );
-} 
+}

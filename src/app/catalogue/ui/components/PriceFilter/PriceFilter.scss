@@ -1,101 +1,126 @@
-.container {
-  height: auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
+/* Ізолюємо стилі всередині pricefilter */
+.pricefilter {
 
-.slider {
-  position: relative;
-  width: 255px;
-}
+  /* Контейнер слайдера — без флексу, з відсіканням артефактів */
+  .container {
+    position: relative;
+    width: 100%;
+    padding: 12px 0;
+    overflow: hidden;     /* <- критично: «лінія через всю сторінку» більше не вилазить */
+    display: block;       /* прибираємо центрирування, яке тягнуло елементи */
+    height: auto;
+  }
 
-.slider__track,
-.slider__range,
-.slider__left-value,
-.slider__right-value {
-  position: absolute;
-}
+  .slider {
+    position: relative;
+    width: 100%;          /* responsive, без 255px */
+    height: 6px;
+  }
 
-.slider__track,
-.slider__range {
-  border-radius: 3px;
-  height: 2px;
-  top: 1px;
-}
+  .slider__track,
+  .slider__range,
+  .slider__left-value,
+  .slider__right-value {
+    position: absolute;
+  }
 
-.slider__track {
-  background-color: #ced4da;
-  width: 100%;
-  z-index: 1;
-}
+  .slider__track,
+  .slider__range {
+    border-radius: 4px;
+    height: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
 
-.slider__range {
-  background-color: #B9B9B9;
-  z-index: 2;
-}
+  .slider__track {
+    background-color: #e5e7eb; /* gray-200 */
+    width: 100%;
+    z-index: 1;
+  }
 
-.slider__left-value,
-.slider__right-value {
-  color: black;
-  font-size: 12px;
-  margin-top: 20px;
-}
+  .slider__range {
+    background-color: #F18737; /* активний діапазон */
+    z-index: 2;
+  }
 
-.slider__left-value {
-  left: 6px;
-}
+  .slider__left-value,
+  .slider__right-value {
+    color: #111827; /* gray-900 */
+    font-size: 12px;
+    margin-top: 20px;
+  }
 
-.slider__right-value {
-  right: -4px;
-}
+  .slider__left-value { left: 6px; }
+  .slider__right-value { right: -4px; }
 
-/* Removing the default appearance */
-.thumb,
-.thumb::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  -webkit-tap-highlight-color: transparent;
-}
+  /* ======== INPUT[type=range] ======== */
 
-.thumb {
-  pointer-events: none;
-  position: absolute;
-  height: 0;
-  width: 255px;
-  outline: none;
-}
+  /* Прибираємо нативний апіренс у самого input (не лише в thumb) */
+  .thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    -webkit-tap-highlight-color: transparent;
 
-.thumb--left {
-  z-index: 3;
-}
+    pointer-events: none;   /* події ловить лише «палець» */
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;            /* без фіксованих 255px */
+    height: 6px;            /* дорівнює висоті треку */
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    outline: none;
+  }
 
-.thumb--right {
-  z-index: 4;
-}
+  .thumb--left  { z-index: 3; }
+  .thumb--right { z-index: 4; }
 
-/* For Chrome browsers */
-.thumb::-webkit-slider-thumb {
-  background-color: #F18737;
-  border: none;
-  border-radius: 50%;
-  cursor: pointer;
-  height: 18px;
-  width: 18px;
-  margin-top: 4px;
-  pointer-events: all;
-  position: relative;
-}
+  /* Ховаємо НАТИВНИЙ ТРЕК у всіх браузерах — саме він малював довгу лінію */
+  .thumb::-webkit-slider-runnable-track {
+    height: 6px;
+    background: transparent !important;
+    border: 0;
+  }
 
-/* For Firefox browsers */
-.thumb::-moz-range-thumb {
-  background-color: #f1f5f7;
-  border: none;
-  border-radius: 50%;
-  box-shadow: 0 0 1px 1px #ced4da;
-  cursor: pointer;
-  height: 18px;
-  width: 18px;
-  margin-top: 4px;
-  pointer-events: all;
-  position: relative;
+  .thumb::-moz-range-track {
+    height: 6px;
+    background: transparent !important;
+    border: 0;
+  }
+
+  .thumb::-ms-track {
+    height: 6px;
+    background: transparent !important;
+    border-color: transparent;
+    color: transparent;
+    border: 0;
+  }
+
+  /* Thumb (WebKit) */
+  .thumb::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    pointer-events: auto;   /* можна тягнути */
+    height: 18px;
+    width: 18px;
+    border-radius: 9999px;
+    border: 2px solid #fff;
+    background-color: #F18737;
+    box-shadow: 0 0 0 2px rgba(0,0,0,.06);
+    position: relative;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  /* Thumb (Firefox) */
+  .thumb::-moz-range-thumb {
+    pointer-events: auto;
+    height: 18px;
+    width: 18px;
+    border-radius: 9999px;
+    border: 2px solid #fff;
+    background-color: #F18737;
+    box-shadow: 0 0 0 2px rgba(0,0,0,.06);
+  }
 }

@@ -1,145 +1,153 @@
-// tabletop-games-shop-fe/src/app/catalogue/ui/sections/Filters/Filters.tsx
+// src/app/catalogue/ui/sections/Filters/Filters.tsx
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState, useMemo } from 'react';
 import { PriceFilter } from '../../components/PriceFilter';
 import { CheckboxFilter } from '../../components/CheckboxFilter';
-// Removed imports for getAllCategories, getAllGenres, getAllProductTypes
-import { TCategory, TGenre, TProductType } from '@/utils/types';
-import { Text } from '@/utils/ui/Text';
+import { AvailableFilters } from '@/app/actions/products';
 
-interface FiltersProps {
-  initialCategories: TCategory[];
-  initialGenres: TGenre[];
-  initialProductTypes: TProductType[];
-  initialFilters: { // New prop to receive initial filter values
+export interface FiltersProps {
+  initialFilters: {
     minPrice: number;
     maxPrice: number;
-    categoryIds: string[];
-    genreIds: string[];
-    productTypeIds: string[];
+
+    categoryNames: string[];
+    genreNames: string[];
+    mechanics: string[];
+    languages: string[];
+
+    productTypeNames: string[];
+
+    nameContains: string[];
+
+    minPlayerNumberRange: string[];
+    maxPlayerNumberRange: string[];
+    minAgeRange: string[];
+
+    publisherContains: string[];
+    authorContains: string[];
   };
+  onFiltersChange: (filters: FiltersProps['initialFilters']) => void;
+  availableFilters: AvailableFilters;
 }
 
-export const Filters = ({ initialCategories, initialGenres, initialProductTypes, initialFilters }: FiltersProps) => {
-  // Initialize state with props, no longer fetching here
-  const [categories, setCategories] = useState<TCategory[]>(initialCategories);
-  const [genres, setGenres] = useState<TGenre[]>(initialGenres);
-  const [productTypes, setProductTypes] = useState<TProductType[]>(initialProductTypes);
-
-  // Manage filter state internally, initialized from initialFilters prop
+export const Filters = ({ availableFilters, initialFilters, onFiltersChange }: FiltersProps) => {
   const [filters, setFilters] = useState(initialFilters);
 
-  // Removed loading and error states for initial fetch as it's done server-side
-  // const [loadingFilters, setLoadingFilters] = useState(true);
-  // const [filterError, setFilterError] = useState<string | null>(null);
-
-  // Removed useEffect for fetching filter options
-  /*
-  useEffect(() => {
-    const fetchFilterOptions = async () => {
-      setLoadingFilters(true);
-      setFilterError(null);
-      try {
-        const [categoriesResult, genresResult, productTypesResult] = await Promise.all([
-          getAllCategories(),
-          getAllGenres(),
-          getAllProductTypes(),
-        ]);
-
-        if (categoriesResult.success && categoriesResult.data) {
-          setCategories(categoriesResult.data);
-        } else {
-          console.error("Failed to load categories for filter:", categoriesResult.errors);
-          setFilterError(prev => (prev ? prev + ", Categories failed" : "Categories failed"));
-        }
-
-        if (genresResult.success && genresResult.data) {
-          setGenres(genresResult.data);
-        } else {
-          console.error("Failed to load genres for filter:", genresResult.errors);
-          setFilterError(prev => (prev ? prev + ", Genres failed" : "Genres failed"));
-        }
-
-        if (productTypesResult.success && productTypesResult.data) {
-          setProductTypes(productTypesResult.data);
-        } else {
-          console.error("Failed to load product types for filter:", productTypesResult.errors);
-          setFilterError(prev => (prev ? prev + ", Product types failed" : "Product types failed"));
-        }
-        console.log('GENREEEEES', genresResult)
-      } catch (err: any) {
-        console.error("Error fetching filter options:", err);
-        setFilterError(err.message || "An unexpected error occurred while fetching filter options.");
-      } finally {
-        setLoadingFilters(false);
-      }
-    };
-    fetchFilterOptions();
-  }, []);
-  */
-
-  // Callback to update filter state and propagate changes (e.g., to ProductList)
-  // This will be handled by the parent Catalogue page's useState and useCallback
-  // For now, we'll keep the internal state and assume the parent will handle the propagation.
-  const handleFilterChange = (newFilterValues: Partial<typeof filters>) => {
-    setFilters(prev => ({
-      ...prev,
-      ...newFilterValues,
-    }));
-    // TODO: Propagate this change up to the parent Catalogue component
-    // The parent Catalogue component will then re-render ProductList with new filters
-    // and potentially update URL search params.
+  const handleFilterChange = (patch: Partial<typeof filters>) => {
+    const next = { ...filters, ...patch };
+    setFilters(next);
+    onFiltersChange(next);
   };
 
+  const handlePriceApply = (minVal: number, maxVal: number) => {
+    handleFilterChange({ minPrice: minVal, maxPrice: maxVal });
+  };
 
-  // Map fetched data to the format expected by CheckboxFilter, converting id to string
-  const categoryOptions = categories.map(cat => ({ id: String(cat.id), value: cat.name }));
-  const genreOptions = genres.map(gen => ({ id: String(gen.id), value: gen.name }));
-  const productTypeOptions = productTypes.map(type => ({ id: String(type.id), value: type.name }));
+  // Масиви з бекенду -> опції
+  const mapOptions = (arr?: string[]) => (arr ?? []).map(v => ({ id: v, value: v }));
 
-  // Removed loading/error rendering for initial filters as it's handled server-side
-  // If there are no initial options, it means the server fetch failed or returned empty.
-  if (categories.length === 0 && genres.length === 0 && productTypes.length === 0) {
-    return (
-      <div className="mt-10 divide-y">
-        <Text.Paragraph className="text-center text-red-500 py-4">Не вдалося завантажити опції фільтрів.</Text.Paragraph>
-      </div>
-    );
-  }
+  const categoryOptions  = useMemo(() => mapOptions(availableFilters.categories), [availableFilters.categories]);
+  const genreOptions     = useMemo(() => mapOptions(availableFilters.genres),     [availableFilters.genres]);
+  const mechanicsOptions = useMemo(() => mapOptions(availableFilters.mechanics),  [availableFilters.mechanics]);
+  const publisherOptions = useMemo(() => mapOptions(availableFilters.publishers), [availableFilters.publishers]);
+  const languageOptions  = useMemo(() => mapOptions(availableFilters.languages),  [availableFilters.languages]);
+  const authorOptions    = useMemo(() => mapOptions(availableFilters.authors),    [availableFilters.authors]);
+
+  // Числові діапазони як чекбокси
+  const minPlayersOptions = useMemo(() => {
+    const max = Math.max(availableFilters.maxPlayers || 0, 0);
+    return Array.from({ length: Math.max(max, 0) }, (_, i) => String(i + 1))
+      .map(v => ({ id: v, value: v }));
+  }, [availableFilters.maxPlayers]);
+
+  const maxPlayersOptions = useMemo(() => {
+    const min = Math.max(availableFilters.minPlayers || 1, 1);
+    const max = Math.max(availableFilters.maxPlayers || min, min);
+    return Array.from({ length: max - min + 1 }, (_, i) => String(min + i))
+      .map(v => ({ id: v, value: v }));
+  }, [availableFilters.minPlayers, availableFilters.maxPlayers]);
+
+  const minAgeOptions = useMemo(() => {
+    const start = Math.max(availableFilters.minAge || 0, 0);
+    const upper = 18;
+    return Array.from({ length: upper - start + 1 }, (_, i) => String(start + i))
+      .map(v => ({ id: v, value: v }));
+  }, [availableFilters.minAge]);
 
   return (
-    <div className='mt-10 divide-y'>
+    <div className="mt-10 divide-y space-y-6">
       <PriceFilter
-        min={0}
-        max={20000}
-        className='mb-8'
+        min={availableFilters.priceRange.min}
+        max={availableFilters.priceRange.max}
+        className="mb-8"
         minVal={filters.minPrice}
         maxVal={filters.maxPrice}
-        onMinChange={(val) => handleFilterChange({ minPrice: val })}
-        onMaxChange={(val) => handleFilterChange({ maxPrice: val })}
+        onApply={handlePriceApply}
       />
 
       <CheckboxFilter
-        title='Категорія'
+        title="Категорія"
         options={categoryOptions}
-        chosenValue={filters.categoryIds}
-        onChange={(selectedIds) => handleFilterChange({ categoryIds: selectedIds })}
+        chosenValue={filters.categoryNames}
+        onChange={(selected) => handleFilterChange({ categoryNames: selected })}
         isOpenDefault
       />
 
       <CheckboxFilter
-        title='Жанр'
+        title="Жанр"
         options={genreOptions}
-        chosenValue={filters.genreIds}
-        onChange={(selectedIds) => handleFilterChange({ genreIds: selectedIds })}
+        chosenValue={filters.genreNames}
+        onChange={(selected) => handleFilterChange({ genreNames: selected })}
       />
 
       <CheckboxFilter
-        title='Тип Продукту'
-        options={productTypeOptions}
-        chosenValue={filters.productTypeIds}
-        onChange={(selectedIds) => handleFilterChange({ productTypeIds: selectedIds })}
+        title="Механіки"
+        options={mechanicsOptions}
+        chosenValue={filters.mechanics}
+        onChange={(selected) => handleFilterChange({ mechanics: selected })}
+      />
+
+      <CheckboxFilter
+        title="Мова"
+        options={languageOptions}
+        chosenValue={filters.languages}
+        onChange={(selected) => handleFilterChange({ languages: selected })}
+      />
+
+      <CheckboxFilter
+        title="Мін. гравців"
+        options={minPlayersOptions}
+        chosenValue={filters.minPlayerNumberRange}
+        onChange={(selected) => handleFilterChange({ minPlayerNumberRange: selected })}
+      />
+
+      <CheckboxFilter
+        title="Макс. гравців"
+        options={maxPlayersOptions}
+        chosenValue={filters.maxPlayerNumberRange}
+        onChange={(selected) => handleFilterChange({ maxPlayerNumberRange: selected })}
+      />
+
+      <CheckboxFilter
+        title="Мін. вік"
+        options={minAgeOptions}
+        chosenValue={filters.minAgeRange}
+        onChange={(selected) => handleFilterChange({ minAgeRange: selected })}
+      />
+
+      <CheckboxFilter
+        title="Видавець"
+        options={publisherOptions}
+        chosenValue={filters.publisherContains}
+        onChange={(selected) => handleFilterChange({ publisherContains: selected })}
+      />
+
+      <CheckboxFilter
+        title="Автор"
+        options={authorOptions}
+        chosenValue={filters.authorContains}
+        onChange={(selected) => handleFilterChange({ authorContains: selected })}
       />
     </div>
   );

@@ -1,71 +1,69 @@
-// src/context/user/UserContextProvider.tsx
 'use client';
 
-import { PropsWithChildren, useEffect, useState, useCallback } from "react";
+import { PropsWithChildren, useEffect, useRef, useState, useCallback } from "react";
 import { UserContext } from "./context";
 import { TUser } from "@/utils/types";
 import { Loader } from "@/app/ui/components/Loader";
 import { EUserRole } from "@/utils/enums";
-import { getCurrentUser } from "@/app/actions/auth"; // getCurrentUser no longer needs a token parameter
-import { useRouter, usePathname } from 'next/navigation';
+import { getCurrentUser } from "@/app/actions/auth";
+import { usePathname } from 'next/navigation';
 
 type TProps = PropsWithChildren<{}>;
-
-// Removed the local getAuthToken function as localStorage is no longer used for tokens.
-// The server action getCurrentUser will now get the token from HttpOnly cookies.
 
 export const UserContextProvider = ({ children }: TProps) => {
   const [user, setUser] = useState<TUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [isClient, setIsClient] = useState(false); // State to track client-side hydration
-  const router = useRouter();
   const pathname = usePathname();
 
-  // Effect to confirm component is mounted on client-side
-  useEffect(() => {
-    setIsClient(true);
-    console.log('UserContextProvider: Component mounted on client.');
-  }, []);
+  const reqIdRef = useRef(Math.random().toString(36).slice(2, 8));
+  const ranRef = useRef(false);
+  const log = (...args: any[]) => console.log(`[UserCtx ${reqIdRef.current}]`, ...args);
 
   const loadUser = useCallback(async () => {
-    setLoading(true);
-    console.log('loadUser: Initiating user load...');
-
-    if (!isClient) {
-      console.log('loadUser: Not on client yet, deferring user load.');
-      setLoading(false);
-      return;
-    }
-
+    const start = performance.now();
+    log('loadUser: begin at', new Date().toISOString(), 'pathname=', pathname);
     try {
-      console.log('loadUser: Calling getCurrentUser...');
+      setLoading(true);
       const { success, data, errors } = await getCurrentUser();
-      console.log('loadUser: getCurrentUser response - success:', success, 'data:', data, 'errors:', errors);
-
+      log('loadUser: getCurrentUser -> success=', success, 'data:', data, 'errors:', errors);
       if (success && data) {
         setUser(data);
-        setIsAdmin(data.role === EUserRole.ADMIN);
-        console.log('loadUser: User data successfully set.');
+        setIsAdmin(data.role === EUserRole.ADMIN || data.role === 'ROLE_ADMIN');
       } else {
-        console.error("loadUser: Failed to load user from API:", errors);
         setUser(null);
         setIsAdmin(false);
       }
     } catch (error) {
-      console.error("loadUser: Unexpected error during getCurrentUser call:", error);
+      log('loadUser: exception', error);
       setUser(null);
       setIsAdmin(false);
     } finally {
       setLoading(false);
-      console.log('loadUser: User loading process finished. Loading set to false.');
+      log('loadUser: end, elapsed=', Math.round(performance.now() - start), 'ms');
     }
-  }, [isClient]);
+  }, [pathname]);
 
   useEffect(() => {
-    console.log('UserContextProvider useEffect triggered. Current pathname:', pathname);
-    loadUser();
-  }, [loadUser]);
+    log('useEffect: mount/path change ->', pathname);
+
+    // While we're on /callback, cookies are being set on the server and then we’re redirected.
+    if (pathname.startsWith('/callback')) {
+      log('useEffect: on /callback, skipping loadUser');
+      setLoading(false);
+      return;
+    }
+
+    if (ranRef.current) {
+      log('useEffect: already ran once, skip');
+      return;
+    }
+    ranRef.current = true;
+
+    void loadUser();
+  }, [pathname, loadUser]);
+
+  log('render: loading=', loading, 'user=', user?.id, 'isAdmin=', isAdmin, 'path=', pathname);
 
   return (
     <UserContext.Provider value={{ user, isAdmin, loading, setUser }}>

@@ -2,36 +2,56 @@
 
 import { Container } from "@/app/ui/components";
 import { BlogCard } from "@/app/ui/components";
-import { Search } from "@/app/ui/components/Search";
 import { Pagination } from "@/app/ui/components/Pagination";
 import { Text } from "@/utils/ui/Text";
-import { blogPageConfig } from "@/utils/config";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { getAllBlogPosts, TBlogPost } from "@/app/actions/blog";
 
 const PAGE_SIZE = 6;
 
 export default function BlogPage() {
-  const { title, items, categories } = blogPageConfig;
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("Всі");
   const [page, setPage] = useState(0);
+  const [blogPosts, setBlogPosts] = useState<TBlogPost[]>([]);
+  const [totalPages, setTotalPages] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Filter by category and search
-  const filtered = items.filter(
-    (item) =>
-      (category === "Всі" || item.category === category) &&
-      (item.title.toLowerCase().includes(search.toLowerCase()) ||
-        item.category.toLowerCase().includes(search.toLowerCase()))
-  );
+  const categories = ["Всі", "Новини", "Огляди", "Поради"];
 
-  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
-  const paginated = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+  const fetchBlogPosts = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    const result = await getAllBlogPosts(page, PAGE_SIZE, search);
+    if (result.success) {
+      // Client-side filtering by category still applies as the API doesn't seem to support it
+      const filteredByUICategory = (result.data || []).filter(
+        (item) => 
+          category === "Всі" || 
+          // Assuming categories can be inferred from title or content, or a placeholder logic
+          // A more robust solution would involve backend category filtering or a dedicated category field in TBlogPost
+          item.title.toLowerCase().includes(category.toLowerCase())
+      );
+      setBlogPosts(filteredByUICategory);
+      setTotalPages(result.totalPages || 0); // Total pages from API for API-driven pagination
+    } else {
+      setError(result.errors.join(", "));
+      setBlogPosts([]);
+      setTotalPages(0);
+    }
+    setLoading(false);
+  }, [page, search, category]); // Added category to dependency array to re-fetch when category changes
+
+  useEffect(() => {
+    fetchBlogPosts();
+  }, [fetchBlogPosts]);
 
   return (
     <Container className="mt-10 mb-16">
       <div className="max-w-6xl mx-auto">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-10">
-          <Text.Header>{title}</Text.Header>
+          <Text.Header>Блог</Text.Header>
           <div className="w-full md:w-80">
             <input
               type="text"
@@ -65,22 +85,29 @@ export default function BlogPage() {
           ))}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-7 min-h-[400px]">
-          {paginated.length === 0 ? (
-            <Text.Paragraph className="col-span-full text-center opacity-60 mt-20">Нічого не знайдено</Text.Paragraph>
-          ) : (
-            paginated.map((item, idx) => (
-              <BlogCard
-                key={item.href + idx}
-                title={item.title}
-                date={item.date}
-                img={item.img}
-                href={item.href}
-                className="h-full"
-              />
-            ))
-          )}
-        </div>
+        {loading ? (
+          <Text.Paragraph className="col-span-full text-center opacity-60 mt-20">Завантаження...</Text.Paragraph>
+        ) : error ? (
+          <Text.Paragraph className="col-span-full text-center text-red-500 mt-20">Помилка: {error}</Text.Paragraph>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-7 min-h-[400px]">
+            {blogPosts.length === 0 ? (
+              <Text.Paragraph className="col-span-full text-center opacity-60 mt-20">Нічого не знайдено</Text.Paragraph>
+            ) : (
+              blogPosts.map((item) => (
+                <BlogCard
+                  key={item.id}
+                  title={item.title}
+                  date={new Date(item.createdAt)}
+                  // Provide a fallback image or ensure mainImageUrl is never null/undefined if BlogCard uses Next/Image without fallback
+                  img={item.mainImageUrl || '/path/to/placeholder-image.jpg'} // Fallback if mainImageUrl is null
+                  href={`/blog/${item.id}`}
+                  className="h-full"
+                />
+              ))
+            )}
+          </div>
+        )}
 
         {totalPages > 1 && (
           <div className="mt-12 flex justify-center">

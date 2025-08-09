@@ -1,26 +1,29 @@
 // src/app/profile/ui/sections/ProfileSection/ProfileSection.tsx
 'use client';
 
-import { logout } from '@/app/actions/auth';
-import { changeUserInfo } from '@/utils/api';
-import { Button, Container, Input } from '@/app/ui/components';
-import { useUserContext } from '@/context/user/context';
-import { Text } from '@/utils/ui/Text';
 import { useEffect, useState, useCallback } from 'react';
 import Image from 'next/image';
-import ProfileIcon from '@/public/icons/profile.svg';
-import { TUser } from '@/utils/types';
+import { useRouter } from 'next/navigation';
 
-// Define the shape of the form state for better type safety and clarity
+import { logout } from '@/app/actions/auth';
+import { changeUserInfo } from '@/utils/api';
+
+import { Button, Container, Input } from '@/app/ui/components';
+import { Text } from '@/utils/ui/Text';
+import { useUserContext } from '@/context/user/context';
+
+import ProfileIcon from '@/public/icons/profile.svg';
+import Link from 'next/link';
+
+// ---- Local types ----
 interface ProfileFormState {
   firstName: string;
   lastName: string;
-  phone: string;
+  phoneNumber: string;
   isSubscribedToNewsLetter: boolean;
   subscribedToNewsLetter: boolean;
 }
 
-// Define the shape of the action result for consistency
 interface ActionResult {
   success: boolean;
   errors: string[];
@@ -28,12 +31,15 @@ interface ActionResult {
 }
 
 export const ProfileSection = () => {
+  const router = useRouter();
   const { user, loading, setUser } = useUserContext();
+
+  console.log('[ProfileSection] render -> loading=', loading, 'user=', user?.id);
 
   const [formState, setFormState] = useState<ProfileFormState>({
     firstName: '',
     lastName: '',
-    phone: '',
+    phoneNumber: '',
     isSubscribedToNewsLetter: false,
     subscribedToNewsLetter: false,
   });
@@ -41,118 +47,9 @@ export const ProfileSection = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
   const [saveResult, setSaveResult] = useState<ActionResult | null>(null);
-  console.log('user', user)
 
-  useEffect(() => {
-    if (user) {
-      setFormState({
-        firstName: user.firstName || '',
-        lastName: user.lastName || '',
-        phone: user.phone || '',
-        isSubscribedToNewsLetter: user.isSubscribedToNewsLetter || false,
-        subscribedToNewsLetter: user.subscribedToNewsLetter || false,
-      });
-      setSaveResult(null);
-    }
-  }, [user]);
-
-  useEffect(() => {
-    if (user) {
-      const originalFirstName = user.firstName || '';
-      const originalLastName = user.lastName || '';
-      const originalPhone = user.phone || '';
-      const originalIsSubscribed = user.isSubscribedToNewsLetter || false;
-      const originalSubscribed = user.subscribedToNewsLetter || false;
-
-      setHasChanges(
-        formState.firstName !== originalFirstName ||
-        formState.lastName !== originalLastName ||
-        formState.phone !== originalPhone ||
-        formState.isSubscribedToNewsLetter !== originalIsSubscribed ||
-        formState.subscribedToNewsLetter !== originalSubscribed
-      );
-    }
-  }, [formState, user]);
-
-  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const { id, value, type, checked } = e.target;
-
-    setFormState(prev => {
-      const newState = { ...prev };
-      if (id === 'isSubscribedToNewsLetter' || id === 'subscribedToNewsLetter') {
-        newState[id] = checked;
-      } else {
-        newState[id as Exclude<keyof ProfileFormState, 'isSubscribedToNewsLetter' | 'subscribedToNewsLetter'>] = value;
-      }
-
-      if (id === 'phone') {
-        newState.phone = formatPhoneNumber(value);
-      }
-      return newState;
-    });
-  }, []);
-
-  const formatPhoneNumber = (value: string) => {
-    const digits = value.replace(/\D/g, '');
-    if (digits.length <= 3) return digits;
-    if (digits.length <= 6) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
-    if (digits.length <= 8) return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`;
-    return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6, 8)}-${digits.slice(8, 10)}`;
-  };
-
-  const handleLogout = async () => {
-    // Removed: localStorage.removeItem('authToken'); // This is now handled by the server action
-    setUser(null);
-    await logout();
-    // The redirect to /login is handled by the logout server action or a global error handler
-  };
-
-  const handleSave = async () => {
-    if (!user) {
-      setSaveResult({ success: false, errors: ['User data not available. Cannot save.'] });
-      return;
-    }
-
-    const result = await changeUserInfo({
-      id: user.id,
-      ...formState,
-    });
-    setSaveResult(result);
-
-    if (result.success) {
-      setIsEditing(false);
-      setUser((prevUser) => {
-        if (prevUser) {
-          return {
-            ...prevUser,
-            ...formState,
-          };
-        }
-        return null;
-      });
-    }
-  };
-
-  const handleCancel = useCallback(() => {
-    if (user) {
-      setFormState({
-        firstName: user.firstName || '',
-        lastName: user.lastName || '',
-        phone: user.phone || '',
-        isSubscribedToNewsLetter: user.isSubscribedToNewsLetter || false,
-        subscribedToNewsLetter: user.subscribedToNewsLetter || false,
-      });
-    }
-    setIsEditing(false);
-    setSaveResult(null);
-  }, [user]);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    handleSave();
-  };
-
-  if (!user) {
+  // -------- Loading / Auth gates --------
+  if (loading) {
     return (
       <Container>
         <div className="min-h-[400px] flex items-center justify-center">
@@ -164,19 +61,138 @@ export const ProfileSection = () => {
     );
   }
 
+  if (!user) {
+    return (
+      <Container>
+        <div className="min-h-[400px] flex items-center justify-center">
+          <div className="text-center">
+            <Text.Header className="text-gray-500 mb-4">Увійдіть, щоб переглянути профіль</Text.Header>
+            <Button onClick={() => router.push('/login')}>Увійти</Button>
+          </div>
+        </div>
+      </Container>
+    );
+  }
+
+  // -------- Effects --------
+  useEffect(() => {
+    // hydrate form from user
+    setFormState({
+      firstName: user.firstName || '',
+      lastName: user.lastName || '',
+      phoneNumber: user.phoneNumber || '',
+      isSubscribedToNewsLetter: user.isSubscribedToNewsLetter || false,
+      subscribedToNewsLetter: user.subscribedToNewsLetter || false,
+    });
+    setSaveResult(null);
+  }, [user]);
+
+  useEffect(() => {
+    // detect changes vs original
+    const originalFirstName = user.firstName || '';
+    const originalLastName = user.lastName || '';
+    const originalPhone = user.phoneNumber || '';
+    const originalIsSubscribed = user.isSubscribedToNewsLetter || false;
+    const originalSubscribed = user.subscribedToNewsLetter || false;
+
+    setHasChanges(
+      formState.firstName !== originalFirstName ||
+        formState.lastName !== originalLastName ||
+        formState.phoneNumber !== originalPhone ||
+        formState.isSubscribedToNewsLetter !== originalIsSubscribed ||
+        formState.subscribedToNewsLetter !== originalSubscribed
+    );
+  }, [formState, user]);
+
+  // -------- Handlers --------
+  const formatPhoneNumber = (value: string) => {
+    const digits = value.replace(/\D/g, '');
+    if (digits.length <= 3) return digits;
+    if (digits.length <= 6) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+    if (digits.length <= 8) return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`;
+    return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6, 8)}-${digits.slice(8, 10)}`;
+  };
+
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, value, checked, type } = e.target;
+    setFormState(prev => {
+      const next = { ...prev };
+      if (type === 'checkbox') {
+        (next as any)[id] = checked;
+      } else {
+        (next as any)[id] = id === 'phone' ? formatPhoneNumber(value) : value;
+      }
+      return next;
+    });
+  }, []);
+
+  const handleCancel = useCallback(() => {
+    setFormState({
+      firstName: user.firstName || '',
+      lastName: user.lastName || '',
+      phoneNumber: user.phoneNumber || '',
+      isSubscribedToNewsLetter: user.isSubscribedToNewsLetter || false,
+      subscribedToNewsLetter: user.subscribedToNewsLetter || false,
+    });
+    setIsEditing(false);
+    setSaveResult(null);
+  }, [user]);
+
+  const handleSave = async () => {
+    if (!user) {
+      setSaveResult({ success: false, errors: ['User data not available. Cannot save.'] });
+      return;
+    }
+
+    const result = await changeUserInfo({
+      id: user.id,
+      ...formState,
+    });
+
+    setSaveResult(result);
+
+    if (result.success) {
+      setIsEditing(false);
+      setUser(prev => (prev ? { ...prev, ...formState } : prev));
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    void handleSave();
+  };
+
+  const handleLogout = async () => {
+    setUser(null);
+    const res = await logout();
+    if (res?.success) router.replace('/login');
+  };
+
+  // -------- UI --------
+  const roleLabel =
+    user.role === 'ROLE_ADMIN' || user.role === 'admin' ? 'Адміністратор' : 'Користувач';
+
   return (
     <Container>
       <div className="max-w-4xl mx-auto py-8">
         <div className="mb-8">
           <div className="flex items-center gap-4 mb-6">
             <div className="w-16 h-16 bg-secondary-100 rounded-full flex items-center justify-center">
-              <Image src={ProfileIcon} alt="Profile" width={32} height={32} className="text-secondary" />
+              <Image src={ProfileIcon} alt="Profile" width={32} height={32} />
             </div>
             <div>
               <Text.Header className="text-2xl mb-1">Мій профіль</Text.Header>
               <Text.Subheader className="text-gray-600">{user.email}</Text.Subheader>
             </div>
           </div>
+            <Button
+              tag={Link}
+              href="/profile/orders"
+              variant="secondary"
+              className="text-sm px-6 py-2"
+            >
+              Мої замовлення
+            </Button>
         </div>
 
         <div className="bg-white rounded-2xl shadow-card p-8 mb-8">
@@ -202,29 +218,26 @@ export const ProfileSection = () => {
                   >
                     Скасувати
                   </Button>
-                  <Button
-                    type="submit"
-                    className="text-sm px-6 py-2"
-                    disabled={!hasChanges}
-                  >
+                  <Button type="submit" className="text-sm px-6 py-2" disabled={!hasChanges}>
                     Зберегти
                   </Button>
                 </div>
               )}
             </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">
-                  Ім'я
+                  Ім&apos;я
                 </label>
                 <Input
-                  id='firstName'
+                  id="firstName"
                   placeholder="Введіть ваше ім'я"
                   type="text"
                   value={formState.firstName}
                   onChange={handleInputChange}
                   disabled={!isEditing}
-                  className={!isEditing ? "bg-gray-50 cursor-not-allowed" : ""}
+                  className={!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}
                 />
               </div>
 
@@ -233,29 +246,29 @@ export const ProfileSection = () => {
                   Прізвище
                 </label>
                 <Input
-                  id='lastName'
+                  id="lastName"
                   placeholder="Введіть ваше прізвище"
                   type="text"
                   value={formState.lastName}
                   onChange={handleInputChange}
                   disabled={!isEditing}
-                  className={!isEditing ? "bg-gray-50 cursor-not-allowed" : ""}
+                  className={!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}
                 />
               </div>
             </div>
 
             <div>
               <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
-                Номер телефону (необов'язково)
+                Номер телефону (необов&apos;язково)
               </label>
               <Input
-                id='phone'
+                id="phone"
                 placeholder="xxx-xxx-xx-xx"
                 type="tel"
-                value={formState.phone}
+                value={formState.phoneNumber}
                 onChange={handleInputChange}
                 disabled={!isEditing}
-                className={!isEditing ? "bg-gray-50 cursor-not-allowed" : ""}
+                className={!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}
               />
               <p className="text-sm text-gray-500 mt-1">Формат: xxx-xxx-xx-xx</p>
             </div>
@@ -292,39 +305,23 @@ export const ProfileSection = () => {
               </div>
             </div>
 
-            {saveResult?.errors && saveResult.errors.length > 0 && (
+            {saveResult?.errors?.length ? (
               <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                <div className="flex">
-                  <div className="ml-3">
-                    <h3 className="text-sm font-medium text-red-800">
-                      Помилки при збереженні:
-                    </h3>
-                    <div className="mt-2 text-sm text-red-700">
-                      <ul className="list-disc pl-5 space-y-1">
-                        {saveResult.errors.map((error, index) => (
-                          <li key={index}>{error}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-                </div>
+                <h3 className="text-sm font-medium text-red-800">Помилки при збереженні:</h3>
+                <ul className="mt-2 text-sm text-red-700 list-disc pl-5 space-y-1">
+                  {saveResult.errors.map((err, i) => (
+                    <li key={i}>{err}</li>
+                  ))}
+                </ul>
               </div>
-            )}
+            ) : null}
 
-            {saveResult?.success && (
+            {saveResult?.success ? (
               <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                <div className="flex">
-                  <div className="ml-3">
-                    <h3 className="text-sm font-medium text-green-800">
-                      Успішно збережено!
-                    </h3>
-                    <div className="mt-2 text-sm text-green-700">
-                      Ваші дані були оновлені.
-                    </div>
-                  </div>
-                </div>
+                <h3 className="text-sm font-medium text-green-800">Успішно збережено!</h3>
+                <p className="mt-2 text-sm text-green-700">Ваші дані були оновлені.</p>
               </div>
-            )}
+            ) : null}
           </form>
         </div>
 
@@ -343,9 +340,7 @@ export const ProfileSection = () => {
             <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
               <div>
                 <Text.Paragraph className="font-semibold">Роль користувача</Text.Paragraph>
-                <Text.Span className="text-gray-600">
-                  {user.role === 'admin' ? 'Адміністратор' : 'Користувач'}
-                </Text.Span>
+                <Text.Span className="text-gray-600">{roleLabel}</Text.Span>
               </div>
               <Text.Span className="text-sm text-gray-500">Системна роль</Text.Span>
             </div>
@@ -357,15 +352,14 @@ export const ProfileSection = () => {
                 <Text.Paragraph className="font-semibold text-gray-900">Вийти з акаунту</Text.Paragraph>
                 <Text.Span className="text-gray-600">Завершити поточну сесію</Text.Span>
               </div>
-              <form action={handleLogout}>
-                <Button
-                  variant="secondary"
-                  type="submit"
-                  className="text-red-600 border-red-600 hover:bg-red-600 hover:text-white"
-                >
-                  Вийти
-                </Button>
-              </form>
+              <Button
+                variant="secondary"
+                type="button"
+                onClick={handleLogout}
+                className="text-red-600 border-red-600 hover:bg-red-600 hover:text-white"
+              >
+                Вийти
+              </Button>
             </div>
           </div>
         </div>

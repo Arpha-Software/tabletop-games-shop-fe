@@ -7,9 +7,11 @@ import { Button } from '@/app/ui/components/Button';
 import { Text } from '@/utils/ui/Text';
 import { cn } from '@/utils/helpers';
 import { Loader } from '@/app/ui/components/Loader';
+import { useRouter } from 'next/navigation';
 
 export const CartSidebar = () => {
   const { cart, loading, clearCart, isSidebarOpen, closeSidebar } = useCartContext();
+  const router = useRouter();
 
   // Prevent background scroll when sidebar is open
   useEffect(() => {
@@ -30,8 +32,9 @@ export const CartSidebar = () => {
   };
 
   const handleCheckout = () => {
-    // TODO: Implement checkout functionality
-    console.log('Proceeding to checkout...');
+    if (!cart || cart.items.length === 0) return;
+    closeSidebar();
+    router.push('/checkout');
   };
 
   return (
@@ -106,7 +109,8 @@ export const CartSidebar = () => {
             
             <Button
               onClick={handleCheckout}
-              className="w-full bg-primary hover:bg-primary/90 text-white font-semibold py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
+              disabled={!cart || cart.items.length === 0}
+              className="w-full bg-primary hover:bg-primary/90 text-white font-semibold py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Оформити замовлення
             </Button>

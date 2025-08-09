@@ -1,3 +1,4 @@
+// /catalogue/ui/sections/ProductList/ProductList.tsx
 // tabletop-games-shop-fe/src/app/catalogue/ui/sections/ProductList.tsx/ProductList.tsx
 'use client';
 
@@ -6,38 +7,92 @@ import { Loader } from '@/app/ui/components/Loader';
 import { Pagination } from '@/app/ui/components/Pagination';
 
 import { useEffect, useState, useCallback } from 'react';
-import { getAllProducts } from '@/app/actions/products';
+import { getAllProducts, ProductFilterRequestBody } from '@/app/actions/products'; // Import ProductFilterRequestBody
 import { TProduct } from '@/utils/types';
+
+// Updated ProductListFilters interface to match the new frontend filter structure
+interface ProductListFilters {
+  minPrice: number;
+  maxPrice: number;
+  categoryNames: string[];
+  genreNames: string[];
+  productTypeNames: string[];
+  nameContains: string[];
+  languages: string[];              // ⬅️ було 'language', робимо так само як в інших
+  minPlayerNumberRange: string[];
+  maxPlayerNumberRange: string[];
+  minAgeRange: string[];
+  publisherContains: string[];
+  authorContains: string[];
+  mechanics: string[];
+  sort: string;
+  searchQuery: string;
+
+  // Якщо десь є інші, зроби їх опційними:
+  minPlayTimeRange?: string[];
+  maxPlayTimeRange?: string[];
+  bggRatingRange?: string[];
+  complexityRange?: string[];
+  componentsContains?: string[];
+  rulesLinkContains?: string[];
+  averageRatingRange?: string[];
+  reviewCountRange?: string[];
+  dimensionWidthRange?: string[];
+  dimensionLengthRange?: string[];
+  dimensionHeightRange?: string[];
+  dimensionWeightRange?: string[];
+  createdAtAfter?: string[];
+}
 
 type TProps = {
   initialProducts: TProduct[];
   initialTotalPages: number;
-  initialFilters: { // New prop to receive initial filter values
-    minPrice: number;
-    maxPrice: number;
-    categoryIds: string[];
-    genreIds: string[];
-    productTypeIds: string[];
-    searchQuery: string;
-    sort: string;
-  };
+  initialFilters: ProductListFilters; // Use the updated interface
 }
 
 export const ProductList = ({ initialProducts, initialTotalPages, initialFilters }: TProps) => {
-  // Initialize state with props for initial render
   const [products, setProducts] = useState<TProduct[]>(initialProducts);
   const [totalPages, setTotalPages] = useState(initialTotalPages);
-  const [loading, setLoading] = useState(false); // Initial loading is false as data is provided
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [currentPage, setCurrentPage] = useState(0); // Start at page 0 for API
+  const [currentPage, setCurrentPage] = useState(0);
 
-  // Function to fetch products based on current filters and page
-  // This function will now be used for subsequent client-side fetches (pagination, filter changes)
-  const fetchProducts = useCallback(async (page: number, currentFilters: typeof initialFilters) => {
+  // Helper for converting string[] to a single number (taking the first element if available and converting)
+  const mapSingleNumber = (arr: string[] | undefined): number | undefined => {
+    return arr && arr.length > 0 && !isNaN(Number(arr[0])) ? Number(arr[0]) : undefined;
+  };
+  
+  // Helper for converting string[] to a single string (taking the first element if available)
+  const mapSingleString = (arr: string[] | undefined): string | undefined => {
+    return arr && arr.length > 0 ? arr[0] : undefined;
+  };
+
+  const fetchProducts = useCallback(async (page: number, currentFilters: ProductListFilters) => {
     setLoading(true);
     setError(null);
     try {
-      const result = await getAllProducts({ ...currentFilters, page });
+      // Map the ProductListFilters to ProductFilterRequestBody for the new POST endpoint
+      const apiFiltersBody: ProductFilterRequestBody & { page?: number; size?: number; sort?: string; } = {
+        page: page, // Pagination as query param
+        size: 20, // Assuming default page size
+        sort: currentFilters.sort, // Sort as query param
+        
+        name: currentFilters.searchQuery || undefined, // search query maps to 'name'
+        minPrice: currentFilters.minPrice,
+        maxPrice: currentFilters.maxPrice,
+        minPlayers: mapSingleNumber(currentFilters.minPlayerNumberRange),
+        maxPlayers: mapSingleNumber(currentFilters.maxPlayerNumberRange),
+        minAge: mapSingleNumber(currentFilters.minAgeRange),
+        categories: currentFilters.categoryNames.length > 0 ? currentFilters.categoryNames : undefined,
+        genres: currentFilters.genreNames.length > 0 ? currentFilters.genreNames : undefined,
+        mechanics: currentFilters.mechanics.length > 0 ? currentFilters.mechanics : undefined,
+        author: mapSingleString(currentFilters.authorContains),
+        publisher: mapSingleString(currentFilters.publisherContains),
+        // The new API endpoint does not include 'language' in the request body.
+        // It is provided in the available filters, but not for filtering in the POST request.
+      };
+
+      const result = await getAllProducts(apiFiltersBody);
 
       if (result.success && result.data) {
         setProducts(result.data.content);
@@ -56,20 +111,18 @@ export const ProductList = ({ initialProducts, initialTotalPages, initialFilters
     } finally {
       setLoading(false);
     }
-  }, []); // No dependencies on filters or authToken anymore, as filters are passed directly
+  }, []);
 
-  // Effect to trigger product fetch on filter changes (from parent) or page changes
   useEffect(() => {
-    // When initialFilters change (meaning filters were updated in the parent Catalogue component),
-    // we should re-fetch products from page 0 using the new filters.
-    setCurrentPage(0);
+    setProducts(initialProducts);
+    setTotalPages(initialTotalPages);
+    setCurrentPage(0); // Reset to first page on filter change
     fetchProducts(0, initialFilters);
-  }, [initialFilters, fetchProducts]); // Depend on initialFilters (which now represents the current filters from parent)
+  }, [initialFilters, fetchProducts, initialProducts, initialTotalPages]);
 
-  // Handle page change from Pagination component
   const handlePageChange = useCallback((page: number) => {
     setCurrentPage(page);
-    fetchProducts(page, initialFilters); // Pass current initialFilters for the new page
+    fetchProducts(page, initialFilters);
   }, [fetchProducts, initialFilters]);
 
   return (

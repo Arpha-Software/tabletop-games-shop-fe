@@ -1,0 +1,1 @@
+export { BlogTab } from "./BlogTab";

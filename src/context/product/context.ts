@@ -10,7 +10,7 @@ import { TPageable, TProduct } from "@/utils/types";
 export type TProductsContext = {
   products: TProduct[];
   recommendations: TProduct[];
-  pageable: TPageable | null;
+  pageable: TPageable | null;     // залишимо, але будемо ставити null
   totalPages: number;
   totalElements: number;
   loading: boolean;
@@ -18,7 +18,8 @@ export type TProductsContext = {
   setRecommendations: Dispatch<SetStateAction<any>>;
   changePage: (page: number) => void;
   changeSort: (sort: string) => void;
-}
+  sort: string;                   // ⬅️ ДОДАНО
+};
 
 export const ProductsContext = createContext<TProductsContext | null>(null);
 

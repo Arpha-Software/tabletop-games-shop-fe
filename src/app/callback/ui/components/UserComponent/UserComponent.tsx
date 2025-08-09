@@ -1,46 +1,56 @@
-// tabletop-games-shop-fe/src/app/callback/ui/components/UserComponent/UserComponent.tsx
+// src/app/callback/ui/components/UserComponent/UserComponent.tsx
 'use client';
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { signup } from '@/app/actions/auth'; // Import the signup server action
+import { useEffect, useRef } from 'react';
+import { signup } from '@/app/actions/auth';
 
 type TProps = {
-  accessToken: string;
-}
+  accessToken?: string;
+  accessTokenExpirationDate?: number; // epoch ms
+  refreshToken?: string;
+  refreshTokenExpirationDate?: number; // epoch ms
+  redirectTo?: string;
+};
 
-export const UserComponent = ({ accessToken }: TProps) => {
-  const router = useRouter();
+export const UserComponent = ({
+  accessToken,
+  accessTokenExpirationDate,
+  refreshToken,
+  refreshTokenExpirationDate,
+  redirectTo = '/profile',
+}: TProps) => {
+  const ranRef = useRef(false);
 
   useEffect(() => {
-    const handleLogin = async () => { // Create an async function
-      console.log('UserComponent: useEffect triggered with accessToken:', accessToken ? 'Present' : 'Missing');
-      if (accessToken) {
-        try {
-          // Call the signup server action to establish the session
-          console.log('UserComponent: Calling signup server action with accessToken...');
-          // Assuming accessTokenExpirationDate can be omitted or handled with a default in signup
-          const signupResult = await signup({ accessToken, accessTokenExpirationDate: Date.now() + 7 * 24 * 60 * 60 * 1000 }); // Passing a dummy expiration for now, ideally derived from access token itself or backend response
+    if (ranRef.current) return;
+    ranRef.current = true;
 
-          if (signupResult.success) {
-            console.log('UserComponent: Signup (session creation) successful. Redirecting to /profile');
-            router.push('/profile');
-          } else {
-            console.error('UserComponent: Failed during signup/session creation:', signupResult);
-            router.push(`/login?error='auth_process_failed'}`);
-          }
-        } catch (e: any) {
-          console.error('UserComponent: Error during signup/session creation or redirect:', e);
-          router.push('/login?error=auth_process_failed');
+    (async () => {
+      try {
+        if (!accessToken) {
+          window.location.replace('/login?error=missing_access_token');
+          return;
         }
-      } else {
-        console.log('UserComponent: No access token provided. Redirecting to login.');
-        router.push('/login?error=auth_failed');
+
+        const res = await signup({
+          accessToken,
+          accessTokenExpirationDate,
+          refreshToken,
+          refreshTokenExpirationDate,
+        });
+
+        if (res?.success) {
+          // ✅ force a full reload so cookies are included on the very first request
+          window.location.replace(redirectTo);
+        } else {
+          window.location.replace('/login?error=signup_failed');
+        }
+      } catch (e) {
+        console.error('UserComponent signup error:', e);
+        window.location.replace('/login?error=signup_exception');
       }
-    };
+    })();
+  }, [accessToken, accessTokenExpirationDate, refreshToken, refreshTokenExpirationDate, redirectTo]);
 
-    handleLogin(); // Call the async function
-  }, [accessToken, router]);
-
-  return <div>Finalizing login...</div>;
+  return <div>Finalizing login…</div>;
 };
