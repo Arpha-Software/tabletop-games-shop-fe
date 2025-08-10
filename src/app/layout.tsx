@@ -65,7 +65,7 @@ export default function RootLayout({
           ${montserratAlternatesBold.variable}
           ${monsterratAlternatesReg.variable}
           ${montserratAlternatesMed.variable}
-          antialiased flex flex-col min-h-screen bg-secondary-50`
+          antialiased flex flex-col min-h-screen`
         }
       >
         <ErrorBoundary>

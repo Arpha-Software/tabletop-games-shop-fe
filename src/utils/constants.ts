@@ -6,3 +6,5 @@ export const SORTING_OPTIONS = [
     { value: 'price,asc', label: 'Від дешевих до дорогих' },
     { value: 'price,desc', label: 'Від дорогих до дешевих' },
 ];
+
+export const DEFAULT_STORE_ADDRESS = "м.Львів, вул.Пекарська, 25";

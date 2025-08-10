@@ -46,6 +46,22 @@ export async function getOrders(params: { page?: number; size?: number; sort?: s
   return { success: true, errors: [], data };
 }
 
+export async function getOrdersByUser(
+  userId: number,
+  params: { page?: number; size?: number; sort?: string } = {}
+) {
+  const { page = 0, size = 10, sort = 'createdAt,desc' } = params;
+
+  return await withAutoRefresh(async (authToken) => {
+    const headers: HeadersInit = {};
+    if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+    return apiClient.get<any>(
+      `/api/v1/users/${userId}/orders?page=${page}&size=${size}&sort=${encodeURIComponent(sort)}`,
+      headers
+    );
+  }).then((data) => ({ success: true, errors: [], data }));
+}
+
 export async function getOrderDetails(userId: number, orderId: number) {
   const data = await (async () => {
     const token1 = cookies().get('authToken')?.value;
@@ -69,6 +85,7 @@ export async function getOrderDetails(userId: number, orderId: number) {
 }
 
 export async function createOrder(payload: CreateOrderPayload) {
+  console.log('payload create order', payload)
   const data = await withAutoRefresh(async (authToken) => {
     const headers: HeadersInit = { 'Content-Type': 'application/json' };
     if (authToken) headers['Authorization'] = `Bearer ${authToken}`;

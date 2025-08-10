@@ -1,7 +1,7 @@
 // tabletop-games-shop-fe/src/app/actions/genres.ts
 'use server';
 
-import { apiClient, ApiError } from "@/utils/apiClient";
+import { apiClient } from "@/utils/apiClient";
 import { TGenre } from "@/utils/types"; // Import Genre type
 import { cookies } from 'next/headers'; // Import cookies
 
@@ -22,7 +22,7 @@ export const getAllGenres = async () => { // Removed authToken parameter
     };
   } catch (error: any) {
     console.error("Get All Genres Error:", error);
-    if (error instanceof ApiError) {
+    if (error) {
       return {
         success: false,
         errors: error.data?.errors || [error.message],
@@ -55,7 +55,7 @@ export const createGenre = async (genreData: Omit<TGenre, 'id'>) => { // Removed
     };
   } catch (error: any) {
     console.error("Create Genre Error:", error);
-    if (error instanceof ApiError) {
+    if (error) {
       return {
         success: false,
         errors: error.data?.errors || [error.message],

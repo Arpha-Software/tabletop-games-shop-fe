@@ -1,7 +1,7 @@
 // tabletop-games-shop-fe/src/app/actions/productTypes.ts
 'use server';
 
-import { apiClient, ApiError } from "@/utils/apiClient";
+import { apiClient } from "@/utils/apiClient";
 import { TProductType } from "@/utils/types"; // Import ProductType type
 import { cookies } from 'next/headers'; // Import cookies
 
@@ -22,7 +22,7 @@ export const getAllProductTypes = async () => { // Removed authToken parameter
     };
   } catch (error: any) {
     console.error("Get All Product Types Error:", error);
-    if (error instanceof ApiError) {
+    if (error) {
       return {
         success: false,
         errors: error.data?.errors || [error.message],
@@ -55,7 +55,7 @@ export const createProductType = async (productTypeData: Omit<TProductType, 'id'
     };
   } catch (error: any) {
     console.error("Create Product Type Error:", error);
-    if (error instanceof ApiError) {
+    if (error) {
       return {
         success: false,
         errors: error.data?.errors || [error.message],

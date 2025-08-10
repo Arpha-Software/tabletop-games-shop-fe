@@ -5,7 +5,7 @@ import { useCartContext } from '@/context/cart/context';
 import { CartItem } from '../CartItem';
 import { Button } from '@/app/ui/components/Button';
 import { Text } from '@/utils/ui/Text';
-import { cn } from '@/utils/helpers';
+import { cn, roundToTwo } from '@/utils/helpers';
 import { Loader } from '@/app/ui/components/Loader';
 import { useRouter } from 'next/navigation';
 
@@ -103,10 +103,10 @@ export const CartSidebar = () => {
             <div className="flex justify-between items-center">
               <Text.Paragraph className="text-lg font-semibold text-gray-900">Разом:</Text.Paragraph>
               <Text.Paragraph className="text-2xl font-bold text-primary">
-                {cart.total}₴
+                {roundToTwo(cart.total)}₴
               </Text.Paragraph>
             </div>
-            
+
             <Button
               onClick={handleCheckout}
               disabled={!cart || cart.items.length === 0}

@@ -3,7 +3,7 @@ import { cva } from "class-variance-authority";
 import { InputHTMLAttributes } from "react";
 
 type TProps = {
-  variant?: 'primary' | 'secondary'
+  variant?: 'primary' | 'secondary' | 'disabled'
   className?: string
 } & InputHTMLAttributes<HTMLInputElement>
 
@@ -30,6 +30,7 @@ const inputVatiants = cva(
       variant: {
         primary: "bg-secondary-100",
         secondary: "",
+        disabled: "bg-secondary-100 text-gray-600"
       }
     },
     defaultVariants: {

@@ -26,3 +26,5 @@ export const handleApiError = async (response: Response) => {
 
   return response.json();
 };
+
+export const roundToTwo = (num: number) => Math.round((num + Number.EPSILON) * 100) / 100;

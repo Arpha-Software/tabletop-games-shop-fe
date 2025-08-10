@@ -11,11 +11,11 @@ export type TCartContext = {
   cart: TCart | null;
   loading: boolean;
   setCart: Dispatch<SetStateAction<TCart | null>>;
-  addItem: (productId: number, quantity?: number, options?: { addons?: number[] }) => Promise<void>;
-  updateItem: (itemId: number, quantity: number) => Promise<void>;
-  removeItem: (itemId: number) => Promise<void>;
-  clearCart: () => Promise<void>;
-  refreshCart: () => Promise<void>;
+  addItem: (productId: number, quantity?: number, options?: { addons?: number[] }) => void;
+  updateItem: (itemId: number, quantity: number) => void;
+  removeItem: (itemId: number) => void;
+  clearCart: () => void;
+  refreshCart: () => void;
   isSidebarOpen: boolean;
   openSidebar: () => void;
   closeSidebar: () => void;

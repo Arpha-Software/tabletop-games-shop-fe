@@ -1,3 +1,4 @@
+// src/context/cart/CartContextProvider.tsx
 'use client';
 
 import { useState, useCallback } from 'react';
@@ -17,8 +18,36 @@ export const CartContextProvider = ({ children }: TProps) => {
   const openSidebar = useCallback(() => setSidebarOpen(true), []);
   const closeSidebar = useCallback(() => setSidebarOpen(false), []);
 
+  // --- async shims so the signatures match TCartContext ---
+  const addItem: TCartContext['addItem'] = async (productId, quantity, options) => {
+    localStorageCart.addItem(productId, quantity, options);
+  };
+
+  const updateItem: TCartContext['updateItem'] = async (itemId, quantity) => {
+    localStorageCart.updateItem(itemId, quantity);
+  };
+
+  const removeItem: TCartContext['removeItem'] = async (itemId) => {
+    localStorageCart.removeItem(itemId);
+  };
+
+  const clearCart: TCartContext['clearCart'] = async () => {
+    localStorageCart.clearCart();
+  };
+
+  const refreshCart: TCartContext['refreshCart'] = async () => {
+    localStorageCart.refreshCart();
+  };
+
   const contextValue: TCartContext = {
-    ...localStorageCart,
+    cart: localStorageCart.cart,
+    loading: localStorageCart.loading,
+    setCart: localStorageCart.setCart,
+    addItem,
+    updateItem,
+    removeItem,
+    clearCart,
+    refreshCart,
     isSidebarOpen,
     openSidebar,
     closeSidebar,
