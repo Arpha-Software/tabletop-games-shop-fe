@@ -2,7 +2,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { cn } from '@/utils/helpers';
 import ArrowIcon from '@/public/icons/arrowbottom.svg';
 
@@ -11,8 +11,8 @@ type Option = { value: string; label: string };
 type TProps = {
   options: Option[];
   className?: string;
-  selectedValue?: string;                 // зробимо опційним
-  onValueChange?: (value: string) => void; // зробимо опційним
+  selectedValue?: string;
+  onValueChange?: (value: string) => void;
 };
 
 export const SelectFilter = ({
@@ -22,81 +22,112 @@ export const SelectFilter = ({
   onValueChange,
 }: TProps) => {
   const [isOpen, setIsOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement | null>(null);
 
-  // Поточний об’єкт-опція за selectedValue
+  // Current option object
   const selectedOption = useMemo<Option | undefined>(() => {
-    if (!options || options.length === 0) return undefined;
-    return options.find(o => o.value === selectedValue) ?? options[0];
+    if (!options?.length) return undefined;
+    return options.find((o) => o.value === selectedValue) ?? options[0];
   }, [options, selectedValue]);
 
-  // Локальний стан: зберігаємо саме об’єкт, щоб не шукати кожен рендер
-  const [currentSelectedOption, setCurrentSelectedOption] = useState<Option | undefined>(selectedOption);
+  const [current, setCurrent] = useState<Option | undefined>(selectedOption);
 
-  // Синхронізація при зміні пропсів
+  useEffect(() => setCurrent(selectedOption), [selectedOption]);
+
+  // Close on click outside
   useEffect(() => {
-    setCurrentSelectedOption(selectedOption);
-  }, [selectedOption]);
+    if (!isOpen) return;
+    const onDocClick = (e: MouseEvent) => {
+      if (!rootRef.current?.contains(e.target as Node)) setIsOpen(false);
+    };
+    document.addEventListener('mousedown', onDocClick);
+    return () => document.removeEventListener('mousedown', onDocClick);
+  }, [isOpen]);
 
-  const maxHeight = `${(options?.length ?? 0) * 48 + 2}px`;
-  const style = {
-    maxHeight: isOpen ? maxHeight : '0px',
-    opacity: isOpen ? 1 : 0,
+  // Keyboard support
+  const onKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
+    if (!options?.length) return;
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      setIsOpen((p) => !p);
+    }
+    if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && !isOpen) {
+      e.preventDefault();
+      setIsOpen(true);
+    }
+    if (e.key === 'Escape') setIsOpen(false);
   };
 
-  const toggleDropdown = useCallback(() => {
-    if (!options || options.length === 0) return;
-    setIsOpen(prev => !prev);
+  const toggle = useCallback(() => {
+    if (!options?.length) return;
+    setIsOpen((p) => !p);
   }, [options]);
 
-  const handleOptionClick = useCallback((option: Option) => {
-    setCurrentSelectedOption(option);
-    // Викликаємо тільки якщо це функція
-    if (typeof onValueChange === 'function') {
-      onValueChange(option.value);
-    } else {
-      // корисно під час дебагу
-      // console.warn('[SelectFilter] onValueChange is not provided');
-    }
-    setIsOpen(false);
-  }, [onValueChange]);
+  const choose = useCallback(
+    (opt: Option) => {
+      setCurrent(opt);
+      onValueChange?.(opt.value);
+      setIsOpen(false);
+    },
+    [onValueChange]
+  );
 
   return (
-    <div className={cn('relative w-64', className)}>
-      <div
-        className={cn(
-          'border border-secondary-100 bg-secondary-50 rounded-lg px-4 py-3 cursor-pointer flex justify-between items-center',
-          !options?.length && 'opacity-60 cursor-not-allowed'
-        )}
-        onClick={toggleDropdown}
-        role="button"
+    <div ref={rootRef} className={cn('relative z-10', className)}>
+      {/* Trigger */}
+      <button
+        type="button"
+        onClick={toggle}
+        onKeyDown={onKeyDown}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
+        className={cn(
+          'h-10 w-full rounded-full border bg-white px-3 text-sm',
+          'border-gray-200 text-gray-700 shadow-sm',
+          'hover:border-primary/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20',
+          !options?.length && 'opacity-60 cursor-not-allowed'
+        )}
       >
-        <span>{currentSelectedOption?.label ?? '—'}</span>
-        <div className={cn('transition-transform duration-300', isOpen ? 'rotate-0' : 'rotate-180')}>
-          <Image src={ArrowIcon} width={16} height={16} alt="Arrow down" />
-        </div>
-      </div>
+        <span className="flex items-center justify-between gap-2">
+          <span className="truncate">{current?.label ?? '—'}</span>
+          <Image
+            src={ArrowIcon}
+            alt="Відкрити"
+            width={16}
+            height={16}
+            className={cn('transition-transform', isOpen ? 'rotate-0' : 'rotate-180')}
+          />
+        </span>
+      </button>
 
+      {/* Dropdown */}
       <ul
-        className="absolute z-10 mt-1 border border-gray-300 bg-white rounded-md w-full shadow-lg transition-[max-height,opacity] duration-300 ease-in-out overflow-hidden"
-        style={style}
         role="listbox"
+        className={cn(
+          'absolute right-0 mt-2 w-[min(220px,90vw)] overflow-hidden',
+          'rounded-xl border border-gray-200 bg-white shadow-lg',
+          'transition-all duration-200 origin-top',
+          isOpen ? 'opacity-100 scale-100' : 'pointer-events-none opacity-0 scale-95'
+        )}
       >
-        {(options ?? []).map((option) => (
-          <li
-            key={option.value}
-            className={cn(
-              'p-3 hover:bg-gray-100 cursor-pointer',
-              option.value === currentSelectedOption?.value && 'bg-gray-50'
-            )}
-            onClick={() => handleOptionClick(option)}
-            role="option"
-            aria-selected={option.value === currentSelectedOption?.value}
-          >
-            {option.label}
-          </li>
-        ))}
+        {(options ?? []).map((opt) => {
+          const active = opt.value === current?.value;
+          return (
+            <li
+              key={opt.value}
+              role="option"
+              aria-selected={active}
+              onClick={() => choose(opt)}
+              className={cn(
+                'px-3 py-2 text-sm cursor-pointer flex items-center justify-between',
+                active ? 'bg-primary/5 text-primary' : 'hover:bg-gray-50'
+              )}
+            >
+              <span className="truncate">{opt.label}</span>
+              {active && <span className="text-primary text-base leading-none">•</span>}
+            </li>
+          );
+        })}
       </ul>
     </div>
   );

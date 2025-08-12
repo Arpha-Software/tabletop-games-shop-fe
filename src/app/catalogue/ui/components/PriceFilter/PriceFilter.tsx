@@ -1,9 +1,10 @@
+// src/app/catalogue/ui/components/PriceFilter/PriceFilter.tsx
 'use client';
 
-import { useCallback, useEffect, useState, useRef } from "react";
-import { Button, Input } from "@/app/ui/components";
-import "./PriceFilter.scss";
-import { cn } from "@/utils/helpers";
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Button, Input } from '@/app/ui/components';
+import { cn } from '@/utils/helpers';
+import './PriceFilter.scss';
 
 type TProps = {
   min: number;
@@ -14,148 +15,120 @@ type TProps = {
   onApply: (min: number, max: number) => void;
 };
 
-// крок у гривнях з копійками
 const STEP = 0.01;
-
-// clamp helper
 const clamp = (v: number, lo: number, hi: number) => Math.min(Math.max(v, lo), hi);
-// округляємо до 2 знаків, щоб уникати 3998.45999999
 const round2 = (v: number) => Math.round(v * 100) / 100;
 
-export const PriceFilter = ({
-  min,
-  max,
-  className,
-  minVal,
-  maxVal,
-  onApply,
-}: TProps) => {
+export const PriceFilter = ({ min, max, className, minVal, maxVal, onApply }: TProps) => {
   const [currentMinVal, setCurrentMinVal] = useState(round2(clamp(minVal, min, max)));
   const [currentMaxVal, setCurrentMaxVal] = useState(round2(clamp(maxVal, min, max)));
 
-  const minValRef = useRef(currentMinVal);
-  const maxValRef = useRef(currentMaxVal);
+  const minRef = useRef(currentMinVal);
+  const maxRef = useRef(currentMaxVal);
   const range = useRef<HTMLDivElement>(null);
 
-  // sync з батьком
   useEffect(() => {
     const v = round2(clamp(minVal, min, max));
     setCurrentMinVal(v);
-    minValRef.current = v;
+    minRef.current = v;
   }, [min, max, minVal]);
 
   useEffect(() => {
     const v = round2(clamp(maxVal, min, max));
     setCurrentMaxVal(v);
-    maxValRef.current = v;
+    maxRef.current = v;
   }, [min, max, maxVal]);
 
   const getPercent = useCallback(
-    (value: number) => {
-      const p = ((value - min) / (max - min)) * 100;
-      return clamp(p, 0, 100); // без Math.round — плавніше і без обрізання
-    },
+    (value: number) => clamp(((value - min) / (max - min)) * 100, 0, 100),
     [min, max]
   );
 
-  // текстові інпути
-  const handleMinInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const raw = Number(e.target.value);
-    const v = round2(clamp(raw, min, currentMaxVal - STEP));
-    setCurrentMinVal(v);
-    minValRef.current = v;
-  };
-
-  const handleMaxInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const raw = Number(e.target.value);
-    // не "return", а клампимо до max
-    const v = round2(clamp(raw, currentMinVal + STEP, max));
-    setCurrentMaxVal(v);
-    maxValRef.current = v;
-  };
-
-  // оновлення видимого діапазону
+  // reflect handles on track
   useEffect(() => {
-    const minPercent = getPercent(currentMinVal);
-    const maxPercent = getPercent(maxValRef.current);
-    if (range.current) {
-      range.current.style.left = `${minPercent}%`;
-      range.current.style.width = `${maxPercent - minPercent}%`;
-    }
+    if (!range.current) return;
+    const left = getPercent(currentMinVal);
+    const right = getPercent(maxRef.current);
+    range.current.style.left = `${left}%`;
+    range.current.style.width = `${right - left}%`;
   }, [currentMinVal, getPercent]);
 
   useEffect(() => {
-    const minPercent = getPercent(minValRef.current);
-    const maxPercent = getPercent(currentMaxVal);
-    if (range.current) {
-      range.current.style.width = `${maxPercent - minPercent}%`;
-    }
+    if (!range.current) return;
+    const left = getPercent(minRef.current);
+    const right = getPercent(currentMaxVal);
+    range.current.style.width = `${right - left}%`;
   }, [currentMaxVal, getPercent]);
 
-  const handleApplyClick = () => onApply(currentMinVal, currentMaxVal);
+  const apply = () => onApply(currentMinVal, currentMaxVal);
 
   return (
-    <section className={cn("pricefilter max-w-64 w-full", className)}>
-      <p className="mb-4 font-medium">Ціна</p>
-
-      <div className="flex items-center justify-between gap-2 mb-6">
+    <section className={cn('price-filter w-full min-w-0', className)}>
+      {/* inputs row */}
+      <div className="grid grid-cols-1 sm:grid-cols-[auto_1fr_auto_1fr] items-center gap-2 mb-3">
+        <span className="text-sm text-gray-600">Від</span>
         <Input
-          className="max-w-17 px-2"
+          className="px-2 py-2 w-full"
           value={currentMinVal}
           inputMode="decimal"
-          onChange={handleMinInputChange}
+          onChange={(e) => {
+            const raw = Number(e.target.value);
+            const v = round2(clamp(raw, min, currentMaxVal - STEP));
+            setCurrentMinVal(v);
+            minRef.current = v;
+          }}
         />
-        <p> - </p>
+        <span className="text-sm text-gray-600">до</span>
         <Input
-          className="max-w-17 px-2"
+          className="px-2 py-2 w-full"
           value={currentMaxVal}
           inputMode="decimal"
-          onChange={handleMaxInputChange}
+          onChange={(e) => {
+            const raw = Number(e.target.value);
+            const v = round2(clamp(raw, currentMinVal + STEP, max));
+            setCurrentMaxVal(v);
+            maxRef.current = v;
+          }}
         />
-        <Button className="w-17 px-4 ml-3" onClick={handleApplyClick}>
-          Ок
-        </Button>
       </div>
 
-      <div className="container">
-        <div className="slider">
-          <div className="slider__track" />
-          <div ref={range} className="slider__range" />
+      <div className="pf-slider">
+        <div className="pf-track" />
+        <div ref={range} className="pf-range" />
 
-          {/* Лівий повзунок */}
-          <input
-            type="range"
-            min={min}
-            max={max}
-            step={STEP}
-            value={currentMinVal}
-            onChange={(e) => {
-              const raw = Number(e.target.value);
-              const v = round2(clamp(raw, min, currentMaxVal - STEP));
-              setCurrentMinVal(v);
-              minValRef.current = v;
-            }}
-            className="thumb thumb--left"
-            aria-label="Мінімальна ціна"
-          />
+        <input
+          type="range"
+          className="pf-input pf-input--left"
+          min={min}
+          max={max}
+          step={STEP}
+          value={currentMinVal}
+          onChange={(e) => {
+            const v = round2(clamp(Number(e.target.value), min, currentMaxVal - STEP));
+            setCurrentMinVal(v);
+            minRef.current = v;
+          }}
+          aria-label="Мінімальна ціна"
+        />
 
-          {/* Правий повзунок */}
-          <input
-            type="range"
-            min={min}
-            max={max}
-            step={STEP}
-            value={currentMaxVal}
-            onChange={(e) => {
-              const raw = Number(e.target.value);
-              const v = round2(clamp(raw, currentMinVal + STEP, max));
-              setCurrentMaxVal(v);
-              maxValRef.current = v;
-            }}
-            className="thumb thumb--right"
-            aria-label="Максимальна ціна"
-          />
-        </div>
+        <input
+          type="range"
+          className="pf-input pf-input--right"
+          min={min}
+          max={max}
+          step={STEP}
+          value={currentMaxVal}
+          onChange={(e) => {
+            const v = round2(clamp(Number(e.target.value), currentMinVal + STEP, max));
+            setCurrentMaxVal(v);
+            maxRef.current = v;
+          }}
+          aria-label="Максимальна ціна"
+        />
+      </div>
+
+      <div className="mt-3 flex justify-end sm:justify-end">
+        <Button className="w-full px-4 py-2 text-sm" onClick={apply}>Застосувати</Button>
       </div>
     </section>
   );

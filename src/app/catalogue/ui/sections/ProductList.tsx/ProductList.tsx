@@ -1,3 +1,4 @@
+// src/app/catalogue/ui/sections/ProductList.tsx/ProductList.tsx
 'use client';
 
 import { ProductCard } from '@/app/ui/components';
@@ -5,6 +6,7 @@ import { Pagination } from '@/app/ui/components/Pagination';
 import { TProduct } from '@/utils/types';
 import { filtersToSearchParams } from '@/utils/filterToSearchParams';
 import { useSearchParams, useRouter } from 'next/navigation';
+import { useTransition } from 'react';
 
 interface ProductListFilters {
   minPrice: number;
@@ -22,21 +24,7 @@ interface ProductListFilters {
   mechanics: string[];
   sort: string;
   searchQuery: string;
-
-  // optional extras ignored here
-  minPlayTimeRange?: string[];
-  maxPlayTimeRange?: string[];
-  bggRatingRange?: string[];
-  complexityRange?: string[];
-  componentsContains?: string[];
-  rulesLinkContains?: string[];
-  averageRatingRange?: string[];
-  reviewCountRange?: string[];
-  dimensionWidthRange?: string[];
-  dimensionLengthRange?: string[];
-  dimensionHeightRange?: string[];
-  dimensionWeightRange?: string[];
-  createdAtAfter?: string[];
+  // optional extras ignored here...
 }
 
 type TProps = {
@@ -49,41 +37,62 @@ export const ProductList = ({ initialProducts, initialTotalPages, initialFilters
   const router = useRouter();
   const sp = useSearchParams();
   const currentPage = Number(sp.get('page') ?? '0');
+  const [isPending, startTransition] = useTransition();
 
   const handlePageChange = (page: number) => {
     const params = filtersToSearchParams({ ...initialFilters });
     params.set('page', String(page));
-    router.push(`/catalogue?${params.toString()}`);
+    startTransition(() => {
+      router.push(`/catalogue?${params.toString()}`);
+    });
   };
 
   const products = initialProducts;
   const totalPages = initialTotalPages;
 
-  if (products.length === 0) {
-    return (
-      <div className="relative w-full">
+  return (
+    <div className="relative w-full">
+      {/* subtle overlay while route is pending (works together with loading.tsx) */}
+      {isPending && (
+        <div className="pointer-events-none absolute inset-0 z-10 bg-white/40 backdrop-blur-[1px]" />
+      )}
+
+      {products.length === 0 ? (
         <div className="flex items-center justify-center h-64">
           <p className="text-gray-500 text-lg">Товари не знайдено</p>
         </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="relative w-full">
-      <div className="flex h-full flex-col justify-between">
-        <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 p-8">
-          {products.map((item) => (
-            <ProductCard key={item.id} item={item} className="w-full" />
-          ))}
-        </div>
-
-        {totalPages > 1 && (
-          <div className="flex justify-center pb-8">
-            <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
+      ) : (
+        <>
+          <div
+            className="
+              grid
+              grid-cols-1
+              xs:grid-cols-2
+              sm:grid-cols-2
+              md:grid-cols-3
+              xl:grid-cols-4
+              2xl:grid-cols-5
+              gap-4 sm:gap-5 lg:gap-6
+              px-4 sm:px-6 lg:px-8
+            "
+            aria-busy={isPending}
+          >
+            {products.map((item) => (
+              <ProductCard key={item.id} item={item} className="w-full" />
+            ))}
           </div>
-        )}
-      </div>
+
+          {totalPages > 1 && (
+            <div className="flex justify-center py-6 lg:py-8">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+              />
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 };

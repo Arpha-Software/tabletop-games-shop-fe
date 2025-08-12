@@ -15,7 +15,7 @@ export default async function Product({ params }: TParams) {
   ]);
   const product: TProduct | null = productRes.success ? productRes.data : null;
   const recs = recsRes.success ? (recsRes.data ?? []) : [];
-  console.log('PAGE PRODUCT ID', recs)
+  // console.log('PAGE PRODUCT ID', recs)
 
   return (
     <>

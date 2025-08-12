@@ -7,6 +7,14 @@ import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
 import { refreshAccessToken } from "./auth";
 
+type FileAccessLink = { link: string; expiresAt?: string };
+export type FileResponse = { fileAccessLink: FileAccessLink };
+
+export type CreateProductResponse =
+  | (TProduct & { fileResponses?: FileResponse[] })
+  | { product: TProduct; fileResponses?: FileResponse[] };
+
+
 // UPDATED ProductFilters interface
 export interface ProductFilters {
   page?: number;
@@ -201,7 +209,7 @@ export const getAvailableFilters = async () => {
     const data = (DEBUG_USE_MOCK_FILTERS && looksEmpty) ? MOCK_FILTERS : normalized;
 
     // корисний лог під час дебагу
-    console.log('availableFilters (server normalized):', data);
+    // console.log('availableFilters (server normalized):', data);
 
     return { success: true, errors: [], data };
   } catch (error: any) {
@@ -216,32 +224,30 @@ export const getAvailableFilters = async () => {
 export const createProduct = async (productData: any) => {
   try {
     const authToken = cookies().get('authToken')?.value;
-
-    const headers: HeadersInit = {};
     if (!authToken) {
       return { success: false, errors: ['Authentication token not provided for product creation.'] };
     }
 
-    const responseData = await apiClient.post<TProduct>('/api/v1/products', productData, { 'Authorization': `Bearer ${authToken}` });
+    const headers: HeadersInit = { 'Authorization': `Bearer ${authToken}` };
+    const raw = await apiClient.post<CreateProductResponse>('/api/v1/products', productData, headers);
+
+    // Normalize to a consistent shape { product, fileResponses? }
+    const product = ('product' in raw ? raw.product : (raw as TProduct));
+    const fileResponses = ('fileResponses' in raw ? raw.fileResponses : (raw as any)?.fileResponses) || undefined;
+
     return {
       success: true,
       errors: [],
-      data: responseData,
+      data: { product, fileResponses } as { product: TProduct; fileResponses?: FileResponse[] },
     };
   } catch (error: any) {
     console.error('Error creating product:', error);
-    if (error) {
-      if (error.statusCode === 401) {
-        redirect('/login');
-      }
-      return {
-        success: false,
-        errors: error.data?.errors || [error.message],
-      };
+    if (error?.statusCode === 401) {
+      redirect('/login');
     }
     return {
       success: false,
-      errors: [error.message],
+      errors: error?.data?.errors || [error?.message || 'Unknown error'],
     };
   }
 };
@@ -263,8 +269,16 @@ export const getAllProducts = async (filters: ProductFilterRequestBody & { page?
 
     const data = await withAutoRefresh(async (authToken) => {
       const headers: HeadersInit = { 'Content-Type': 'application/json' };
+
       if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
-      return apiClient.post<{ content: TProduct[]; totalPages: number }>(endpoint, cleanFilterBody, headers);
+
+      return apiClient.post<{ content: TProduct[]; totalPages: number }>(
+        endpoint,
+        cleanFilterBody,
+        headers,
+        undefined,
+        { cache: 'no-store' }
+      );
     });
 
     return { success: true, errors: [], data };

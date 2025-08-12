@@ -65,54 +65,71 @@ export const useLocalStorageCart = (products: TProduct[] = []) => {
     );
   };
 
+  const resolveProduct = useCallback(async (productOrId: number | TProduct): Promise<TProduct | undefined> => {
+    if (typeof productOrId === 'object' && productOrId) return productOrId;
+
+    const found = products.find(p => p.id === productOrId);
+    if (found) return found;
+
+    // Fallback fetch (public endpoint)
+    try {
+      const res = await fetch(`/api/v1/products/${productOrId}`, { credentials: 'include' });
+      if (res.ok) {
+        const p: TProduct = await res.json();
+        return p;
+      }
+    } catch {}
+    return undefined;
+  }, [products]);
+
   const addItem = useCallback(
-    async (productId: number, quantity: number = 1, options?: { addons?: number[] }) => {
-      const product = products.find((p) => p.id === productId);
+    async (productOrId: number | TProduct, quantity: number = 1, options?: { addons?: number[] }) => {
+      const product = await resolveProduct(productOrId);
       if (!product) {
         toast.error('Товар не знайдено');
         return;
       }
 
-      let addons: TProduct[] | undefined = undefined;
-      if (options?.addons && options.addons.length > 0) {
-        addons = products.filter((p) => options.addons!.includes(p.id));
+      let addons: TProduct[] | undefined;
+      if (options?.addons?.length) {
+        // Try to resolve all addons by id from existing products only (keep it simple)
+        addons = products.filter(p => options.addons!.includes(p.id));
       }
 
-      setCart((prevCart) => {
-        if (!prevCart) {
+      setCart(prev => {
+        const build = (items: TCartItem[]): TCart => ({ items, total: roundToTwo(
+          items.reduce(
+            (sum, i) => sum + i.product.price * i.quantity + (i.addons?.reduce((s, a) => s + a.price, 0) ?? 0) * i.quantity,
+            0
+          )
+        )});
+
+        if (!prev) {
           const newItem: TCartItem = { id: Date.now(), product, quantity, ...(addons ? { addons } : {}) };
-          return {
-            items: [newItem],
-            total: calculateTotal([newItem])
-          };
+          return build([newItem]);
         }
 
-        const existingItem = prevCart.items.find(
-          (item) =>
-            item.product.id === productId &&
-            JSON.stringify(item.addons?.map((a) => a.id).sort()) ===
-              JSON.stringify((addons || []).map((a) => a.id).sort())
+        const sameKey = (idsA?: number[], idsB?: number[]) =>
+          JSON.stringify((idsA ?? []).slice().sort()) === JSON.stringify((idsB ?? []).slice().sort());
+
+        const existing = prev.items.find(i =>
+          i.product.id === product.id && sameKey(i.addons?.map(a => a.id), addons?.map(a => a.id))
         );
 
-        if (existingItem) {
-          const updatedItems = prevCart.items.map((item) =>
-            item.product.id === productId &&
-            JSON.stringify(item.addons?.map((a) => a.id).sort()) ===
-              JSON.stringify((addons || []).map((a) => a.id).sort())
-              ? { ...item, quantity: item.quantity + quantity }
-              : item
+        if (existing) {
+          const items = prev.items.map(i =>
+            i === existing ? { ...i, quantity: i.quantity + quantity } : i
           );
-          return { items: updatedItems, total: calculateTotal(updatedItems) };
+          return build(items);
         } else {
-          const newItem: TCartItem = { id: Date.now(), product, quantity, ...(addons ? { addons } : {}) };
-          const updatedItems = [...prevCart.items, newItem];
-          return { items: updatedItems, total: calculateTotal(updatedItems) };
+          const items = [...prev.items, { id: Date.now(), product, quantity, ...(addons ? { addons } : {}) }];
+          return build(items);
         }
       });
 
       toast.success('Товар додано до кошика');
     },
-    [products]
+    [products, resolveProduct]
   );
 
   const updateItem = useCallback((itemId: number, quantity: number) => {
@@ -155,14 +172,5 @@ export const useLocalStorageCart = (products: TProduct[] = []) => {
     setLoading(false);
   }, []);
 
-  return {
-    cart,
-    loading,
-    setCart,
-    addItem,
-    updateItem,
-    removeItem,
-    clearCart,
-    refreshCart
-  };
+  return { cart, loading, setCart, addItem, updateItem, removeItem, clearCart, refreshCart };
 };

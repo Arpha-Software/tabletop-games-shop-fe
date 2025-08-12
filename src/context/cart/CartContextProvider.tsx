@@ -13,14 +13,15 @@ type TProps = {
 export const CartContextProvider = ({ children }: TProps) => {
   const { products } = useProductsContext();
   const localStorageCart = useLocalStorageCart(products);
+
   const [isSidebarOpen, setSidebarOpen] = useState(false);
 
   const openSidebar = useCallback(() => setSidebarOpen(true), []);
   const closeSidebar = useCallback(() => setSidebarOpen(false), []);
 
   // --- async shims so the signatures match TCartContext ---
-  const addItem: TCartContext['addItem'] = async (productId, quantity, options) => {
-    localStorageCart.addItem(productId, quantity, options);
+  const addItem: TCartContext['addItem'] = async (productOrId, quantity, options) => {
+    localStorageCart.addItem(productOrId, quantity, options);
   };
 
   const updateItem: TCartContext['updateItem'] = async (itemId, quantity) => {

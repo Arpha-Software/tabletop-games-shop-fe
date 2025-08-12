@@ -1,11 +1,11 @@
-// src/app/profile/ui/sections/ProfileSection/ProfileSection.tsx
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
-import { logout } from '@/app/actions/auth';
+import { logout as serverLogout } from '@/app/actions/auth';
 import { changeUserInfo } from '@/utils/api';
 
 import { Button, Container, Input } from '@/app/ui/components';
@@ -13,9 +13,7 @@ import { Text } from '@/utils/ui/Text';
 import { useUserContext } from '@/context/user/context';
 
 import ProfileIcon from '@/public/icons/profile.svg';
-import Link from 'next/link';
 
-// ---- Local types ----
 interface ProfileFormState {
   firstName: string;
   lastName: string;
@@ -23,7 +21,6 @@ interface ProfileFormState {
   isSubscribedToNewsLetter: boolean;
   subscribedToNewsLetter: boolean;
 }
-
 interface ActionResult {
   success: boolean;
   errors: string[];
@@ -34,8 +31,6 @@ export const ProfileSection = () => {
   const router = useRouter();
   const { user, loading, setUser } = useUserContext();
 
-  console.log('[ProfileSection] render -> loading=', loading, 'user=', user?.id);
-
   const [formState, setFormState] = useState<ProfileFormState>({
     firstName: '',
     lastName: '',
@@ -43,40 +38,24 @@ export const ProfileSection = () => {
     isSubscribedToNewsLetter: false,
     subscribedToNewsLetter: false,
   });
-
   const [isEditing, setIsEditing] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
   const [saveResult, setSaveResult] = useState<ActionResult | null>(null);
 
-  // -------- Loading / Auth gates --------
-  if (loading) {
-    return (
-      <Container>
-        <div className="min-h-[400px] flex items-center justify-center">
-          <div className="text-center">
-            <Text.Header className="text-gray-500">Завантаження профілю...</Text.Header>
-          </div>
-        </div>
-      </Container>
-    );
-  }
-
-  if (!user) {
-    return (
-      <Container>
-        <div className="min-h-[400px] flex items-center justify-center">
-          <div className="text-center">
-            <Text.Header className="text-gray-500 mb-4">Увійдіть, щоб переглянути профіль</Text.Header>
-            <Button onClick={() => router.push('/login')}>Увійти</Button>
-          </div>
-        </div>
-      </Container>
-    );
-  }
-
-  // -------- Effects --------
+  // ---- Hooks must be unconditional (before any early return) ----
   useEffect(() => {
-    // hydrate form from user
+    if (!user) {
+      // reset to blanks when user logs out
+      setFormState({
+        firstName: '',
+        lastName: '',
+        phoneNumber: '',
+        isSubscribedToNewsLetter: false,
+        subscribedToNewsLetter: false,
+      });
+      setSaveResult(null);
+      return;
+    }
     setFormState({
       firstName: user.firstName || '',
       lastName: user.lastName || '',
@@ -88,23 +67,19 @@ export const ProfileSection = () => {
   }, [user]);
 
   useEffect(() => {
-    // detect changes vs original
-    const originalFirstName = user.firstName || '';
-    const originalLastName = user.lastName || '';
-    const originalPhone = user.phoneNumber || '';
-    const originalIsSubscribed = user.isSubscribedToNewsLetter || false;
-    const originalSubscribed = user.subscribedToNewsLetter || false;
-
+    if (!user) {
+      setHasChanges(false);
+      return;
+    }
     setHasChanges(
-      formState.firstName !== originalFirstName ||
-        formState.lastName !== originalLastName ||
-        formState.phoneNumber !== originalPhone ||
-        formState.isSubscribedToNewsLetter !== originalIsSubscribed ||
-        formState.subscribedToNewsLetter !== originalSubscribed
+      formState.firstName !== (user.firstName || '') ||
+      formState.lastName !== (user.lastName || '') ||
+      formState.phoneNumber !== (user.phoneNumber || '') ||
+      formState.isSubscribedToNewsLetter !== (user.isSubscribedToNewsLetter || false) ||
+      formState.subscribedToNewsLetter !== (user.subscribedToNewsLetter || false)
     );
   }, [formState, user]);
 
-  // -------- Handlers --------
   const formatPhoneNumber = (value: string) => {
     const digits = value.replace(/\D/g, '');
     if (digits.length <= 3) return digits;
@@ -120,13 +95,18 @@ export const ProfileSection = () => {
       if (type === 'checkbox') {
         (next as any)[id] = checked;
       } else {
-        (next as any)[id] = id === 'phone' ? formatPhoneNumber(value) : value;
+        if (id === 'phone') {
+          next.phoneNumber = formatPhoneNumber(value);
+        } else {
+          (next as any)[id] = value;
+        }
       }
       return next;
     });
   }, []);
 
   const handleCancel = useCallback(() => {
+    if (!user) return;
     setFormState({
       firstName: user.firstName || '',
       lastName: user.lastName || '',
@@ -143,14 +123,8 @@ export const ProfileSection = () => {
       setSaveResult({ success: false, errors: ['User data not available. Cannot save.'] });
       return;
     }
-
-    const result = await changeUserInfo({
-      id: user.id,
-      ...formState,
-    });
-
+    const result = await changeUserInfo({ id: user.id, ...formState });
     setSaveResult(result);
-
     if (result.success) {
       setIsEditing(false);
       setUser(prev => (prev ? { ...prev, ...formState } : prev));
@@ -163,14 +137,36 @@ export const ProfileSection = () => {
   };
 
   const handleLogout = async () => {
+    // clear context immediately for snappy UI, then clear session server-side
     setUser(null);
-    const res = await logout();
-    if (res?.success) router.replace('/login');
+    await serverLogout();
+    router.replace('/'); // or '/login'
   };
 
-  // -------- UI --------
   const roleLabel =
-    user.role === 'ROLE_ADMIN' || user.role === 'admin' ? 'Адміністратор' : 'Користувач';
+    user && (user.role === 'ROLE_ADMIN' || user.role === 'admin') ? 'Адміністратор' : 'Користувач';
+
+  // ---- Now we can safely early-return UI ----
+  if (loading) {
+    return (
+      <Container>
+        <div className="min-h-[400px] flex items-center justify-center">
+          <Text.Header className="text-gray-500">Завантаження профілю...</Text.Header>
+        </div>
+      </Container>
+    );
+  }
+
+  if (!user) {
+    return (
+      <Container>
+        <div className="min-h-[400px] pt-20 text-center">
+          <Text.Header className="text-gray-500 mb-4">Увійдіть, щоб переглянути профіль</Text.Header>
+          <Button onClick={() => router.push('/login')}>Увійти</Button>
+        </div>
+      </Container>
+    );
+  }
 
   return (
     <Container>
@@ -185,14 +181,9 @@ export const ProfileSection = () => {
               <Text.Subheader className="text-gray-600">{user.email}</Text.Subheader>
             </div>
           </div>
-            <Button
-              tag={Link}
-              href="/profile/orders"
-              variant="secondary"
-              className="text-sm px-6 py-2"
-            >
-              Мої замовлення
-            </Button>
+          <Button tag={Link} href="/profile/orders" variant="secondary" className="text-sm px-6 py-2">
+            Мої замовлення
+          </Button>
         </div>
 
         <div className="bg-white rounded-2xl shadow-card p-8 mb-8">
@@ -200,22 +191,12 @@ export const ProfileSection = () => {
             <div className="flex items-center justify-between mb-6">
               <Text.Header className="text-xl">Особиста інформація</Text.Header>
               {!isEditing ? (
-                <Button
-                  variant="secondary"
-                  type="button"
-                  onClick={() => setIsEditing(true)}
-                  className="text-sm px-6 py-2"
-                >
+                <Button variant="secondary" type="button" onClick={() => setIsEditing(true)} className="text-sm px-6 py-2">
                   Редагувати
                 </Button>
               ) : (
                 <div className="flex gap-3">
-                  <Button
-                    variant="secondary"
-                    type="button"
-                    onClick={handleCancel}
-                    className="text-sm px-6 py-2"
-                  >
+                  <Button variant="secondary" type="button" onClick={handleCancel} className="text-sm px-6 py-2">
                     Скасувати
                   </Button>
                   <Button type="submit" className="text-sm px-6 py-2" disabled={!hasChanges}>

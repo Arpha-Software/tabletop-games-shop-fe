@@ -1,7 +1,7 @@
 // tabletop-games-shop-fe/src/app/catalogue/CatalogueClientWrapper.tsx
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { Filters } from './ui/sections/Filters/Filters';
 import { ProductList } from './ui/sections/ProductList.tsx';
@@ -30,34 +30,35 @@ export const CatalogueClientWrapper = ({
   const router = useRouter();
 
   const [currentClientFilters, setCurrentClientFilters] = useState(initialFilters);
+  const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
     setCurrentClientFilters(initialFilters);
   }, [initialFilters]);
 
 
+
   const handleFiltersChange = (newFilterValues: Partial<FiltersProps['initialFilters']>) => {
-    const updatedFilters = {
-      ...currentClientFilters,
-      ...newFilterValues,
-    };
-    setCurrentClientFilters(updatedFilters);
-
-    const newSearchParams = filtersToSearchParams(updatedFilters);
-
-    router.push(`/catalogue?${newSearchParams.toString()}`);
+    const updated = { ...currentClientFilters, ...newFilterValues };
+    setCurrentClientFilters(updated);
+    const params = filtersToSearchParams(updated);
+    startTransition(() => {
+      router.push(`/catalogue?${params.toString()}`);
+    });
   };
 
   return (
     <>
-      <div className='w-96 border-r px-16'>
+      {/* was: w-96 border-r px-16 */}
+      <div className="w-full md:w-80 lg:w-96 border-r px-4 md:px-6 lg:px-8">
         <Filters
           availableFilters={availableFilters}
           initialFilters={currentClientFilters}
           onFiltersChange={handleFiltersChange}
         />
       </div>
-      <div className='flex-1'>
+
+      <div className="flex-1">
         <ProductList
           initialProducts={initialProducts}
           initialTotalPages={initialTotalPages}

@@ -373,7 +373,7 @@ export const CheckoutForm = () => {
                               // suppress re-trigger
                               suppressCityOnce.current = true;
                               setCityInput(c.MainDescription);
-                              setSelectedCityRef(c.DeliveryCity || c.Ref);
+                              setSelectedCityRef(deliveryType === 'NOVA_POSHTA_DEPARTMENT' ? c.DeliveryCity : c.Ref);
                               setSelectedDepartmentRef(null);
                               setCityOptions([]);
                               closeCity();

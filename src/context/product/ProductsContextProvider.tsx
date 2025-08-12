@@ -75,6 +75,7 @@ export const ProductsContextProvider = ({ children }: TProps) => {
     setSort(value);
     setCurrentPage(0);
   };
+    console.log('products: ', products)
 
   return (
     <ProductsContext.Provider

@@ -11,7 +11,7 @@ export type TCartContext = {
   cart: TCart | null;
   loading: boolean;
   setCart: Dispatch<SetStateAction<TCart | null>>;
-  addItem: (productId: number, quantity?: number, options?: { addons?: number[] }) => void;
+  addItem: (product: number | TProduct, quantity?: number, options?: { addons?: number[] }) => void;
   updateItem: (itemId: number, quantity: number) => void;
   removeItem: (itemId: number) => void;
   clearCart: () => void;

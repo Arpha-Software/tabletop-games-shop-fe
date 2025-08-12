@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { Button } from '@/app/ui/components';
 import { TProduct } from '@/utils/types';
 
@@ -11,76 +12,119 @@ type TProps = {
   setCurrentPage: (page: number) => void;
 };
 
-export const ProductTable = ({ products, handleEdit, handleDelete, totalPages, currentPage, setCurrentPage }: TProps) => {
+const fmt = (n?: number) => (typeof n === 'number' ? `${n.toLocaleString('uk-UA')} ₴` : '—');
+
+export const ProductTable = ({
+  products,
+  handleEdit,
+  handleDelete,
+  totalPages,
+  currentPage,
+  setCurrentPage,
+}: TProps) => {
   return (
-    <div className="bg-white rounded-lg shadow overflow-hidden">
+    <div className="bg-white rounded-2xl shadow-card overflow-hidden">
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+        <table className="min-w-full divide-y divide-gray-100">
+          <thead className="bg-gray-50/80">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Назва</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Тип</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ціна</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Гравці</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Дії</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600">Товар</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600">Тип</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600">Ціна</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600">Гравці</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600">Дії</th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {products.map((product) => (
-              <tr key={product.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{product.id}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  <Link href={`/catalogue/${product.id}`} className=' underline'>{product.name}</Link>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  {product.publicationDetails?.publisher || '-'}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{product.price} ₴</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{product.gameDetails?.players || '-'}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                  <div className="flex gap-2">
-                    <Button variant="secondary" className="text-xs px-3 py-1" onClick={() => handleEdit(product)}>
-                      Редагувати
-                    </Button>
-                    <Button variant="secondary" className="text-xs px-3 py-1 text-red-600 hover:text-red-800" onClick={() => handleDelete(product.id)}>
-                      Видалити
-                    </Button>
-                  </div>
+          <tbody className="bg-white divide-y divide-gray-100">
+            {products.map((p) => {
+              const thumb = p.media?.mainImgLink ?? p.media?.photos?.[0] ?? '';
+              const g = (p as any)?.gameDetails;
+
+              const players =
+                g?.players ??
+                ((g?.minPlayerNumber != null && g?.maxPlayerNumber != null)
+                  ? `${g.minPlayerNumber}–${g.maxPlayerNumber}`
+                  : '—');
+
+              const typeName =
+                (p as any)?.type?.name
+                ?? (p as any)?.productType?.name
+                ?? p.publicationDetails?.publisher
+                ?? '—';
+
+              return (
+                <tr key={p.id} className="hover:bg-gray-50/60">
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="h-12 w-12 shrink-0 rounded-lg bg-gray-100 overflow-hidden border border-gray-200">
+                        {thumb ? (
+                          <Image alt={p.name} src={thumb} width={48} height={48} className="h-full w-full object-cover" />
+                        ) : null}
+                      </div>
+                      <div className="min-w-0">
+                        <Link href={`/catalogue/${p.id}`} className="block text-sm font-semibold text-gray-900 hover:underline">
+                          {p.name}
+                        </Link>
+                        <div className="text-xs text-gray-500">ID: {p.id}</div>
+                      </div>
+                    </div>
+                  </td>
+
+                  <td className="px-6 py-4 text-sm text-gray-700">{typeName}</td>
+                  <td className="px-6 py-4 text-sm text-gray-700">{fmt(p.price)}</td>
+                  <td className="px-6 py-4 text-sm text-gray-700">{players}</td>
+
+                  <td className="px-6 py-4">
+                    <div className="flex gap-2">
+                      <Button variant="secondary" className="text-xs px-3 py-1" onClick={() => handleEdit(p)}>
+                        Редагувати
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        className="text-xs px-3 py-1 text-red-600 hover:text-white hover:bg-red-600 hover:border-red-600"
+                        onClick={() => handleDelete(p.id)}
+                      >
+                        Видалити
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+            {products.length === 0 && (
+              <tr>
+                <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
+                  Немає товарів
                 </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
       </div>
 
       {totalPages > 1 && (
-        <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-          <div className="flex-1 flex justify-between sm:hidden">
-            <Button variant="secondary" onClick={() => setCurrentPage(Math.max(0, currentPage - 1))} disabled={currentPage === 0}>
+        <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-100">
+          <p className="text-sm text-gray-600">
+            Сторінка <span className="font-medium">{currentPage + 1}</span> з{' '}
+            <span className="font-medium">{totalPages}</span>
+          </p>
+          <div className="flex gap-2">
+            <Button
+              variant="secondary"
+              onClick={() => setCurrentPage(Math.max(0, currentPage - 1))}
+              disabled={currentPage === 0}
+              className="px-4 py-2"
+            >
               Попередня
             </Button>
-            <Button variant="secondary" onClick={() => setCurrentPage(Math.min(totalPages - 1, currentPage + 1))} disabled={currentPage === totalPages - 1}>
+            <Button
+              variant="secondary"
+              onClick={() => setCurrentPage(Math.min(totalPages - 1, currentPage + 1))}
+              disabled={currentPage === totalPages - 1}
+              className="px-4 py-2"
+            >
               Наступна
             </Button>
-          </div>
-          <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-            <div>
-              <p className="text-sm text-gray-700">
-                Сторінка <span className="font-medium">{currentPage + 1}</span> з{' '}
-                <span className="font-medium">{totalPages}</span>
-              </p>
-            </div>
-            <div>
-              <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
-                <Button variant="secondary" className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50" onClick={() => setCurrentPage(Math.max(0, currentPage - 1))} disabled={currentPage === 0}>
-                  Попередня
-                </Button>
-                <Button variant="secondary" className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50" onClick={() => setCurrentPage(Math.min(totalPages - 1, currentPage + 1))} disabled={currentPage === totalPages - 1}>
-                  Наступна
-                </Button>
-              </nav>
-            </div>
           </div>
         </div>
       )}

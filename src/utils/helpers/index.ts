@@ -28,3 +28,11 @@ export const handleApiError = async (response: Response) => {
 };
 
 export const roundToTwo = (num: number) => Math.round((num + Number.EPSILON) * 100) / 100;
+
+export function unwrapList<T>(data: unknown): T[] {
+  const anyData = data as any;
+  if (!anyData) return [];
+  if (Array.isArray(anyData)) return anyData as T[];
+  if (Array.isArray(anyData?.content)) return anyData.content as T[];
+  return [];
+}

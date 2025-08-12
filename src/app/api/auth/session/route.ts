@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
       }
     );
 
-    console.log('Response headers:', response.headers);
+    // console.log('Response headers:', response.headers);
 
     return response;
 

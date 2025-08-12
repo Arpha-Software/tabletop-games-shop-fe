@@ -57,7 +57,7 @@ export default function RootLayout({
   auth: React.ReactNode;
 }>) {
   return (
-    <html lang="uk" className="h-full">
+    <html lang="uk" className="h-full overflow-x-clip">
       <body
         className={
           `${avenirNextCyrReg.variable}
@@ -83,7 +83,71 @@ export default function RootLayout({
 
                   <Footer />
 
-                  <Toaster />
+                  <Toaster
+                    position="top-right"
+                    reverseOrder={false}
+                    gutter={12}
+                    containerClassName="pointer-events-none z-[70] sm:mr-4 sm:mt-4"
+                    toastOptions={{
+                      duration: 2600,
+
+                      style: {
+                        background: '#ffffff',   // was 'transparent' — this hid your card
+                        color: '#111827',        // Tailwind gray-900
+                        boxShadow: 'none',       // let Tailwind shadow-card show through
+                        padding: 0,
+                      },
+
+                      className: [
+                        'pointer-events-auto relative overflow-hidden',
+                        'flex items-start gap-3',
+                        'w-[calc(100vw-1rem)] sm:w-auto sm:min-w-[320px] max-w-[420px]',
+                        'px-4 py-3 sm:px-5 sm:py-4',
+                        'rounded-2xl border border-secondary-100 bg-white shadow-card',
+                        'text-sm text-gray-900 font-secondary',
+                      ].join(' '),
+
+                      success: {
+                        duration: 2200,
+                        icon: (
+                          <span className="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-primary">
+                            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M20 7L10 17l-4-4" />
+                            </svg>
+                          </span>
+                        ),
+                        className: 'before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1.5 before:bg-primary/90',
+                      },
+
+                      error: {
+                        duration: 3200,
+                        icon: (
+                          <span className="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-rose-100 text-rose-600">
+                            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M12 3l9 9-9 9-9-9 9-9z" />
+                            </svg>
+                          </span>
+                        ),
+                        className: 'before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1.5 before:bg-rose-500',
+                      },
+
+                      loading: {
+                        icon: (
+                          <span className="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-primary">
+                            <svg viewBox="0 0 24 24" className="h-4 w-4 animate-spin" fill="none" stroke="currentColor" strokeWidth="2">
+                              <circle cx="12" cy="12" r="9" className="opacity-25" />
+                              <path d="M21 12a9 9 0 0 1-9 9" />
+                            </svg>
+                          </span>
+                        ),
+                        className: 'before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1.5 before:bg-primary/70',
+                      },
+                    }}
+                  />
+
+
+
+
                   <CartSidebar />
                 </WishlistContextProvider>
               </CartContextProvider>

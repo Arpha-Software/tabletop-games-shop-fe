@@ -37,14 +37,13 @@ export const searchStreets = async (SettlementRef: string, StreetName: string) =
     const token = cookies().get('authToken')?.value;
     const headers: Headers = { 'Content-Type': 'application/json' };
     if (token) headers['Authorization'] = `Bearer ${token}`;
-    console.log('StreetName: ', q)
-    console.log('SettlementRef: ', SettlementRef)
+    console.log('body: ', { SettlementRef, StreetName: q, Limit: '10' })
     const res = await apiClient.post<any>(
       '/api/v1/nova-poshta/settlements/streets/search',
       { SettlementRef, StreetName: q, Limit: '10' },
       headers
     );
-    console.log('resssssssss', res)
+    console.log('response: ', res)
     const list = res?.data?.[0]?.Addresses ?? [];
     return list;
   } catch (e) {

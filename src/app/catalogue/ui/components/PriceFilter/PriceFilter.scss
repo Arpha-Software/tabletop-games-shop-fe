@@ -1,126 +1,87 @@
-/* Ізолюємо стилі всередині pricefilter */
-.pricefilter {
+/* src/app/catalogue/ui/components/PriceFilter/PriceFilter.scss */
+.price-filter {
+  /* design tokens (match your theme) */
+  --pf-primary: #F18737;         /* brand orange */
+  --pf-track:   #F1EFE9;         /* light neutral track */
+  --pf-range:   var(--pf-primary);
 
-  /* Контейнер слайдера — без флексу, з відсіканням артефактів */
-  .container {
+  .pf-slider {
     position: relative;
     width: 100%;
-    padding: 12px 0;
-    overflow: hidden;     /* <- критично: «лінія через всю сторінку» більше не вилазить */
-    display: block;       /* прибираємо центрирування, яке тягнуло елементи */
-    height: auto;
+    height: 28px;
+    margin: 4px 0 0;
   }
 
-  .slider {
-    position: relative;
-    width: 100%;          /* responsive, без 255px */
-    height: 6px;
-  }
-
-  .slider__track,
-  .slider__range,
-  .slider__left-value,
-  .slider__right-value {
+  .pf-track {
     position: absolute;
-  }
-
-  .slider__track,
-  .slider__range {
-    border-radius: 4px;
-    height: 6px;
-    top: 50%;
-    transform: translateY(-50%);
-  }
-
-  .slider__track {
-    background-color: #e5e7eb; /* gray-200 */
-    width: 100%;
-    z-index: 1;
-  }
-
-  .slider__range {
-    background-color: #F18737; /* активний діапазон */
-    z-index: 2;
-  }
-
-  .slider__left-value,
-  .slider__right-value {
-    color: #111827; /* gray-900 */
-    font-size: 12px;
-    margin-top: 20px;
-  }
-
-  .slider__left-value { left: 6px; }
-  .slider__right-value { right: -4px; }
-
-  /* ======== INPUT[type=range] ======== */
-
-  /* Прибираємо нативний апіренс у самого input (не лише в thumb) */
-  .thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    -webkit-tap-highlight-color: transparent;
-
-    pointer-events: none;   /* події ловить лише «палець» */
-    position: absolute;
+    top: 12px;
     left: 0;
+    right: 0;
+    height: 4px;
+    border-radius: 9999px;
+    background: var(--pf-track);
+  }
+
+  .pf-range {
+    position: absolute;
+    top: 12px;
+    height: 4px;
+    border-radius: 9999px;
+    background: var(--pf-range);
+    left: 0%;
+    width: 0%;
+  }
+
+  /* reset native range look and make handles brand-colored */
+  .pf-input {
+    position: absolute;
+    pointer-events: none; /* both sliders overlay; thumbs handle events */
+    left: 0;
+    right: 0;
     top: 0;
-    width: 100%;            /* без фіксованих 255px */
-    height: 6px;            /* дорівнює висоті треку */
-    margin: 0;
-    padding: 0;
+    height: 28px;
+    width: 100%;
     background: transparent;
+    appearance: none;
+    -webkit-appearance: none;
     outline: none;
   }
 
-  .thumb--left  { z-index: 3; }
-  .thumb--right { z-index: 4; }
-
-  /* Ховаємо НАТИВНИЙ ТРЕК у всіх браузерах — саме він малював довгу лінію */
-  .thumb::-webkit-slider-runnable-track {
-    height: 6px;
-    background: transparent !important;
-    border: 0;
+  /* track (webkit) */
+  .pf-input::-webkit-slider-runnable-track {
+    height: 4px;
+    background: transparent;
   }
-
-  .thumb::-moz-range-track {
-    height: 6px;
-    background: transparent !important;
-    border: 0;
-  }
-
-  .thumb::-ms-track {
-    height: 6px;
-    background: transparent !important;
-    border-color: transparent;
-    color: transparent;
-    border: 0;
-  }
-
-  /* Thumb (WebKit) */
-  .thumb::-webkit-slider-thumb {
+  /* thumb (webkit) */
+  .pf-input::-webkit-slider-thumb {
     -webkit-appearance: none;
-    appearance: none;
-    pointer-events: auto;   /* можна тягнути */
-    height: 18px;
-    width: 18px;
+    pointer-events: all;
+    width: 16px;
+    height: 16px;
     border-radius: 9999px;
+    background: var(--pf-primary);
     border: 2px solid #fff;
-    background-color: #F18737;
-    box-shadow: 0 0 0 2px rgba(0,0,0,.06);
-    position: relative;
-    top: 50%;
-    transform: translateY(-50%);
+    box-shadow: 0 1px 2px rgba(0,0,0,.12);
+    margin-top: -6px; /* center on 4px track */
+    cursor: pointer;
   }
 
-  /* Thumb (Firefox) */
-  .thumb::-moz-range-thumb {
-    pointer-events: auto;
-    height: 18px;
-    width: 18px;
-    border-radius: 9999px;
-    border: 2px solid #fff;
-    background-color: #F18737;
-    box-shadow: 0 0 0 2px rgba(0,0,0,.06);
+  /* firefox */
+  .pf-input::-moz-range-track {
+    height: 4px;
+    background: transparent;
   }
+  .pf-input::-moz-range-thumb {
+    pointer-events: all;
+    width: 16px;
+    height: 16px;
+    border-radius: 9999px;
+    background: var(--pf-primary);
+    border: 2px solid #fff;
+    box-shadow: 0 1px 2px rgba(0,0,0,.12);
+    cursor: pointer;
+  }
+
+  .pf-input--left { z-index: 3; }
+  .pf-input--right { z-index: 4; }
 }
