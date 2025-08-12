@@ -1,4 +1,3 @@
-// context/product/ProductsContextProvider.tsx
 'use client';
 
 import { PropsWithChildren, useEffect, useState, useCallback } from "react";
@@ -6,12 +5,12 @@ import { getAllProducts, getProductsRecommendations } from "@/app/actions/produc
 import { ProductsContext } from "./context";
 import { TPageable, TProduct } from "@/utils/types";
 import { SORTING_OPTIONS } from "@/utils/constants";
-import { useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 
 type TProps = PropsWithChildren<{}>;
 
 export const ProductsContextProvider = ({ children }: TProps) => {
-  const router = useRouter();
+  const pathname = usePathname();
 
   const [products, setProducts] = useState<TProduct[]>([]);
   const [loading, setLoading] = useState(true);
@@ -33,20 +32,18 @@ export const ProductsContextProvider = ({ children }: TProps) => {
   const fetchProducts = useCallback(async (page: number, sortValue: string) => {
     try {
       setLoading(true);
+      const [resp, rec] = await Promise.all([
+        getAllProducts({ page, size: 20, sort: sortValue }),
+        getProductsRecommendations(page),
+      ]);
 
-      const resp = await getAllProducts({ page, size: 20, sort: sortValue });
       if (!resp || !resp.success) {
-        // optional: if unauthorized, send to login — your UserContext already logs it
-        if ((resp as any)?.errorCode === 401) {
-          // router.push('/login'); // enable if you want
-        }
         applyEmpty();
         return;
       }
 
-      const rec = await getProductsRecommendations(page);
       const list = resp.data?.content ?? [];
-      const recList = rec?.data?.content ?? [];
+      const recList = rec?.data ?? [];
 
       setProducts(list);
       setRecommendations(recList);
@@ -61,18 +58,22 @@ export const ProductsContextProvider = ({ children }: TProps) => {
     }
   }, []);
 
-  // initial & pagination
+  const shouldFetchHere =
+    !pathname.startsWith('/catalogue');
+
   useEffect(() => {
+    if (!shouldFetchHere) {
+      setLoading(false);
+      return;
+    }
     fetchProducts(currentPage, sort);
-  }, [currentPage, sort, fetchProducts]);
+  }, [currentPage, sort, fetchProducts, shouldFetchHere]);
 
   const changePage = (page: number) => setCurrentPage(page);
 
-  // fire request immediately on sort change + reset page
   const changeSort = (value: string) => {
     setSort(value);
     setCurrentPage(0);
-    fetchProducts(0, value); // immediate refetch
   };
 
   return (

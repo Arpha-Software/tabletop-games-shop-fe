@@ -1,16 +1,32 @@
-.nav-link::after {
+/* src/app/ui/sections/Header/components/Navigation/Navigation.module.scss */
+.navLink {
+  position: relative;
+  outline: none;
+}
+
+/* Subtle animated underline for hover on INACTIVE items only */
+.navLink:not([aria-current="page"])::after {
   content: '';
-  display: block;
-  width: 0px;
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: -6px;
   height: 2px;
-  background-color: #F18737;
-  transition: width 0.3s;
+  background-color: #F18737; /* primary */
+  border-radius: 9999px;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform .22s ease;
+  opacity: 0.9;
 }
 
-.nav-link:hover::after {
-  width: 100%;
+.navLink:not([aria-current="page"]):hover::after,
+.navLink:not([aria-current="page"]):focus-visible::after {
+  transform: scaleX(1);
 }
 
-.nav-link:hover {
-  color: #F18737;
+@media (prefers-reduced-motion: reduce) {
+  .navLink:not([aria-current="page"])::after {
+    transition: none;
+  }
 }

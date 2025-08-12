@@ -69,7 +69,7 @@ export const Button = ({
       href={href || ''}
       onClick={onClick}
       disabled={disabled}
-      form={form}       // <<<<<< прокидуємо
+      form={form}
     >
       <Text.Span>{children}</Text.Span>
     </Tag>

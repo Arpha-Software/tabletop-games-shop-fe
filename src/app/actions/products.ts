@@ -207,7 +207,6 @@ export const getAvailableFilters = async () => {
   } catch (error: any) {
     console.error('Error fetching available filters:', error);
     if (error) {
-      if (error.statusCode === 401) redirect('/login');
       return { success: false, errors: error.data?.errors || [error.message], data: null };
     }
     return { success: false, errors: [error.message], data: null };
@@ -283,15 +282,12 @@ export const getProductsRecommendations = async (page: number) => {
     const data = await withAutoRefresh(async (authToken) => {
       const headers: HeadersInit = {};
       if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
-      return apiClient.get<{ content: TProduct[]; totalPages: number }>(`/api/v1/products/recommendations?page=${page}`, headers);
+      return apiClient.get<{ product: TProduct; reason: string }[]>(`/api/v1/products/recommendations?page=${page}`, headers);
     });
-    return { success: true, errors: [], data };
+    return { success: true, errors: [], data: data.map(item => item.product) };
   } catch (error: any) {
     console.error('Error fetching product recommendations:', error);
-    if (error) {
-      return { success: false, errors: error.data?.errors || [error.message], data: { content: [], totalPages: 0 } };
-    }
-    return { success: false, errors: [error.message], data: { content: [], totalPages: 0 } };
+    return { success: false, errors: error.data?.errors || [error.message], data: [] };
   }
 };
 
@@ -313,9 +309,6 @@ export const getProductById = async (id: string) => {
   } catch (error: any) {
     console.error(`Error fetching product with ID ${id}:`, error);
     if (error) {
-      if (error.statusCode === 401) {
-        redirect('/login');
-      }
       return {
         success: false,
         errors: error.data?.errors || [error.message],

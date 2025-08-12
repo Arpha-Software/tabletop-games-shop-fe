@@ -1,3 +1,4 @@
+// src/app/actions/blog.ts
 'use server';
 
 import { apiClient } from "@/utils/apiClient";
@@ -46,21 +47,22 @@ export const getAllBlogPosts = async (page: number = 0, size: number = 6, search
   try {
     const authToken = cookies().get('authToken')?.value;
     const headers: HeadersInit = {};
-    if (authToken) {
-      headers['Authorization'] = `Bearer ${authToken}`;
-    }
+    if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
 
     const queryParams = new URLSearchParams();
     queryParams.append('page', String(page));
     queryParams.append('size', String(size));
-    if (search) {
-      queryParams.append('search', search); // Assuming the API supports a 'search' query parameter
-    }
+    if (search) queryParams.append('search', search);
 
-    const queryString = queryParams.toString();
-    const endpoint = `/api/v1/blog/posts${queryString ? `?${queryString}` : ''}`;
+    const endpoint = `/api/v1/blog/posts?${queryParams.toString()}`;
 
-    const data = await apiClient.get<{ content: TBlogPost[], totalPages: number, totalElements: number }>(endpoint, headers);
+    // 60s ISR for identical (page,size,search) combos; dedupes within render too
+    const data = await apiClient.get<{ content: TBlogPost[], totalPages: number, totalElements: number }>(
+      endpoint,
+      headers,
+      undefined,
+      { next: { revalidate: 60, tags: ['blog:list'] } }
+    );
 
     return {
       success: true,
@@ -71,21 +73,9 @@ export const getAllBlogPosts = async (page: number = 0, size: number = 6, search
     };
   } catch (error: any) {
     console.error('Error fetching all blog posts:', error);
-    if (error) {
-      if (error.statusCode === 401) {
-        redirect('/login');
-      }
-      return {
-        success: false,
-        errors: error.data?.errors || [error.message],
-        data: [],
-        totalPages: 0,
-        totalElements: 0,
-      };
-    }
     return {
       success: false,
-      errors: [error.message],
+      errors: error?.data?.errors || [error?.message || 'Unknown error'],
       data: [],
       totalPages: 0,
       totalElements: 0,
@@ -97,32 +87,18 @@ export const getBlogPostById = async (id: string) => {
   try {
     const authToken = cookies().get('authToken')?.value;
     const headers: HeadersInit = {};
-    if (authToken) {
-      headers['Authorization'] = `Bearer ${authToken}`;
-    }
+    if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
 
-    const data = await apiClient.get<TBlogPost>(`/api/v1/blog/posts/${id}`, headers);
-    console.log('data article', data)
-    return {
-      success: true,
-      errors: [],
-      data,
-    };
+    const data = await apiClient.get<TBlogPost>(`/api/v1/blog/posts/${id}`, headers, undefined, {
+      next: { revalidate: 120, tags: ['blog:item'] },
+    });
+
+    return { success: true, errors: [], data };
   } catch (error: any) {
     console.error(`Error fetching blog post with ID ${id}:`, error);
-    if (error) {
-      if (error.statusCode === 401) {
-        redirect('/login');
-      }
-      return {
-        success: false,
-        errors: error.data?.errors || [error.message],
-        data: null,
-      };
-    }
     return {
       success: false,
-      errors: [error.message],
+      errors: error?.data?.errors || [error?.message || 'Unknown error'],
       data: null,
     };
   }
@@ -131,128 +107,59 @@ export const getBlogPostById = async (id: string) => {
 export const createBlogPost = async (postData: TCreateBlogPost) => {
   try {
     const authToken = cookies().get('authToken')?.value;
-    const headers: HeadersInit = {};
-    if (!authToken) {
-      return { success: false, errors: ['Authentication token not provided for blog post creation.'] };
-    }
-    headers['Authorization'] = `Bearer ${authToken}`;
+    if (!authToken) return { success: false, errors: ['Authentication token not provided for blog post creation.'] };
 
+    const headers: HeadersInit = { Authorization: `Bearer ${authToken}` };
     const responseData = await apiClient.post<TBlogPost>('/api/v1/blog/posts', postData, headers);
-    return {
-      success: true,
-      errors: [],
-      data: responseData,
-    };
+    return { success: true, errors: [], data: responseData };
   } catch (error: any) {
     console.error('Error creating blog post:', error);
-    if (error) {
-      if (error.statusCode === 401) {
-        redirect('/login');
-      }
-      return {
-        success: false,
-        errors: error.data?.errors || [error.message],
-      };
-    }
-    return {
-      success: false,
-      errors: [error.message],
-    };
+    if (error?.statusCode === 401) redirect('/login');
+    return { success: false, errors: error?.data?.errors || [error?.message || 'Unknown error'] };
   }
 };
 
 export const createBlogComment = async (commentData: TCreateBlogComment) => {
   try {
     const authToken = cookies().get('authToken')?.value;
-    const headers: HeadersInit = {};
-    if (!authToken) {
-      return { success: false, errors: ['Authentication token not provided for comment creation.'] };
-    }
-    headers['Authorization'] = `Bearer ${authToken}`;
+    if (!authToken) return { success: false, errors: ['Authentication token not provided for comment creation.'] };
 
+    const headers: HeadersInit = { Authorization: `Bearer ${authToken}` };
     await apiClient.post<void>('/api/v1/blog/comments', commentData, headers);
-    return {
-      success: true,
-      errors: [],
-    };
+    return { success: true, errors: [] };
   } catch (error: any) {
     console.error('Error creating blog comment:', error);
-    if (error) {
-      if (error.statusCode === 401) {
-        redirect('/login');
-      }
-      return {
-        success: false,
-        errors: error.data?.errors || [error.message],
-      };
-    }
-    return {
-      success: false,
-      errors: [error.message],
-    };
+    if (error?.statusCode === 401) redirect('/login');
+    return { success: false, errors: error?.data?.errors || [error?.message || 'Unknown error'] };
   }
 };
 
 export const deleteBlogPost = async (id: number) => {
   try {
     const authToken = cookies().get('authToken')?.value;
-    const headers: HeadersInit = {};
-    if (!authToken) {
-      return { success: false, errors: ['Authentication token not provided for blog post deletion.'] };
-    }
-    headers['Authorization'] = `Bearer ${authToken}`;
+    if (!authToken) return { success: false, errors: ['Authentication token not provided for blog post deletion.'] };
 
+    const headers: HeadersInit = { Authorization: `Bearer ${authToken}` };
     await apiClient.delete<void>(`/api/v1/blog/posts/${id}`, headers);
-    return {
-      success: true,
-      errors: [],
-    };
+    return { success: true, errors: [] };
   } catch (error: any) {
     console.error(`Error deleting blog post with ID ${id}:`, error);
-    if (error) {
-      if (error.statusCode === 401) {
-        redirect('/login');
-      }
-      return {
-        success: false,
-        errors: error.data?.errors || [error.message],
-      };
-    }
-    return {
-      success: false,
-      errors: [error.message],
-    };
+    if (error?.statusCode === 401) redirect('/login');
+    return { success: false, errors: error?.data?.errors || [error?.message || 'Unknown error'] };
   }
 };
 
 export const deleteBlogComment = async (id: number) => {
   try {
     const authToken = cookies().get('authToken')?.value;
-    const headers: HeadersInit = {};
-    if (!authToken) {
-      return { success: false, errors: ['Authentication token not provided for comment deletion.'] };
-    }
-    headers['Authorization'] = `Bearer ${authToken}`;
+    if (!authToken) return { success: false, errors: ['Authentication token not provided for comment deletion.'] };
 
+    const headers: HeadersInit = { Authorization: `Bearer ${authToken}` };
     await apiClient.delete<void>(`/api/v1/blog/comments/${id}`, headers);
-    return {
-      success: true,
-      errors: [],
-    };
+    return { success: true, errors: [] };
   } catch (error: any) {
     console.error(`Error deleting blog comment with ID ${id}:`, error);
-    if (error) {
-      if (error.statusCode === 401) {
-        redirect('/login');
-      }
-      return {
-        success: false,
-        errors: error.data?.errors || [error.message],
-      };
-    }
-    return {
-      success: false,
-      errors: [error.message],
-    };
+    if (error?.statusCode === 401) redirect('/login');
+    return { success: false, errors: error?.data?.errors || [error?.message || 'Unknown error'] };
   }
 };
