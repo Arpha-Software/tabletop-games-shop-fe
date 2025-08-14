@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
 
-import { Button, Input, Loader } from '@/app/ui/components';
+import { Button, Input } from '@/app/ui/components';
 import { Text } from '@/utils/ui/Text';
 
 import { getAllProducts, createProduct, deleteProduct } from '@/app/actions/products';
@@ -15,6 +15,7 @@ import { TProduct } from '@/utils/types';
 import { ProductForm } from './components/ProductForm';
 import { ProductTable } from './components/ProductTable';
 import { unwrapList } from '@/utils/helpers';
+import { RubikLoadable } from '../../../../ui/components/Loader';
 
 const initialProductData = {
   name: '',
@@ -259,82 +260,81 @@ export const ProductsTab = () => {
     setCurrentPage((p) => p); // trigger refetch via effect
   };
 
-  // ------- UI -------
-  if (loading) return <Loader />;
-
   return (
-    <div className="space-y-6">
-      {/* Toolbar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <Text.Header>Управління товарами</Text.Header>
-          <Text.Span className="text-gray-500">Створення, редагування та видалення товарів</Text.Span>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <div className="hidden md:block">
-            <select
-              value={pageSize}
-              onChange={(e) => { setCurrentPage(0); setPageSize(Number(e.target.value)); }}
-              className="px-3 py-2 rounded-xl border border-gray-200 bg-white text-sm"
-            >
-              {[12, 24, 48].map((n) => (
-                <option key={n} value={n}>{n} / стор.</option>
-              ))}
-            </select>
+    <RubikLoadable loading={loading} fullscreen dim="rgba(255,255,255,.6)" wobble size={160}>
+      <div className="space-y-6">
+        {/* Toolbar */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <Text.Header>Управління товарами</Text.Header>
+            <Text.Span className="text-gray-500">Створення, редагування та видалення товарів</Text.Span>
           </div>
 
-          <div className="relative">
-            <Input
-              placeholder="Пошук за назвою…"
-              value={search}
-              onChange={(e) => { setCurrentPage(0); setSearch(e.target.value); }}
-              className="pr-10"
-            />
-            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 opacity-50">⌘K</span>
+          <div className="flex items-center gap-3">
+            <div className="hidden md:block">
+              <select
+                value={pageSize}
+                onChange={(e) => { setCurrentPage(0); setPageSize(Number(e.target.value)); }}
+                className="px-3 py-2 rounded-xl border border-gray-200 bg-white text-sm"
+              >
+                {[12, 24, 48].map((n) => (
+                  <option key={n} value={n}>{n} / стор.</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="relative">
+              <Input
+                placeholder="Пошук за назвою…"
+                value={search}
+                onChange={(e) => { setCurrentPage(0); setSearch(e.target.value); }}
+                className="pr-10"
+              />
+              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 opacity-50">⌘K</span>
+            </div>
+
+            <Button onClick={() => {
+              setEditingProduct(null);
+              setProductData(initialProductData);
+              setFileUploads([]);
+              setImagePreviews([]);
+              setShowCreateForm(true);
+            }}>
+              Додати товар
+            </Button>
           </div>
-
-          <Button onClick={() => {
-            setEditingProduct(null);
-            setProductData(initialProductData);
-            setFileUploads([]);
-            setImagePreviews([]);
-            setShowCreateForm(true);
-          }}>
-            Додати товар
-          </Button>
         </div>
-      </div>
 
-      {/* Create / Edit form */}
-      {showCreateForm && (
-        <ProductForm
-          editingProduct={editingProduct}
-          productData={productData}
-          productTypes={productTypes}
-          categories={categories}
-          genres={genres}
-          fileUploads={fileUploads}
-          imagePreviews={imagePreviews}
-          handleInputChange={handleInputChange}
-          handleMultiSelectChange={handleMultiSelectChange}
-          handleFileChange={handleFileChange}
-          handleSubmit={handleSubmit}
-          setShowCreateForm={setShowCreateForm}
-          setFileUploads={setFileUploads}
-          setImagePreviews={setImagePreviews}
+        {/* Create / Edit form */}
+        {showCreateForm && (
+          <ProductForm
+            editingProduct={editingProduct}
+            productData={productData}
+            productTypes={productTypes}
+            categories={categories}
+            genres={genres}
+            fileUploads={fileUploads}
+            imagePreviews={imagePreviews}
+            handleInputChange={handleInputChange}
+            handleMultiSelectChange={handleMultiSelectChange}
+            handleFileChange={handleFileChange}
+            handleSubmit={handleSubmit}
+            setShowCreateForm={setShowCreateForm}
+            setFileUploads={setFileUploads}
+            setImagePreviews={setImagePreviews}
+          />
+        )}
+
+        {/* Table */}
+        <ProductTable
+          products={products}
+          handleEdit={handleEdit}
+          handleDelete={handleDelete}
+          totalPages={totalPages}
+          currentPage={currentPage}
+          setCurrentPage={setCurrentPage}
         />
-      )}
-
-      {/* Table */}
-      <ProductTable
-        products={products}
-        handleEdit={handleEdit}
-        handleDelete={handleDelete}
-        totalPages={totalPages}
-        currentPage={currentPage}
-        setCurrentPage={setCurrentPage}
-      />
-    </div>
+      </div>
+    </RubikLoadable>
   );
 };

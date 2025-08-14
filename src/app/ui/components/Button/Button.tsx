@@ -1,27 +1,74 @@
-import { ReactNode } from "react";
+import { ReactNode, MouseEventHandler } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { cva } from "class-variance-authority";
 import { Text } from "../../../../utils/ui/Text";
 import { cn } from "@/utils/helpers";
 
-type ButtonProps = {
-  variant?: "primary" | "secondary" | "base" | "link" | "link-disabled" | "disabled" | "plain" | "plain-focus";
-  tag?: "button" | "div" | "a" | typeof Link;
+type ButtonVariant =
+  | "primary"
+  | "secondary"
+  | "base"
+  | "link"
+  | "link-disabled"
+  | "disabled"
+  | "plain"
+  | "plain-focus";
+
+type ButtonTag = "button" | "div" | "a" | typeof Link;
+
+type ButtonPropsBase = {
+  variant?: ButtonVariant;
+  tag?: ButtonTag;
   className?: string;
-  type?: "button" | "submit" | "reset";
-  onClick?: any;
+  onClick?: MouseEventHandler<HTMLElement>;
   href?: string;
   icon?: any;
   disabled?: boolean;
-  form?: string;
   children: ReactNode;
 };
+
+type ButtonPropsForButton = {
+  tag?: "button";
+  type?: "button" | "submit" | "reset";
+  form?: string;
+} & ButtonPropsBase;
+
+type ButtonPropsForDiv = {
+  tag: "div";
+  type?: never;
+  form?: never;
+} & ButtonPropsBase;
+
+type ButtonPropsForAnchor = {
+  tag: "a";
+  href: string;
+  type?: never;
+  form?: never;
+} & ButtonPropsBase;
+
+type ButtonPropsForNextLink = {
+  tag: typeof Link;
+  href: string;
+  type?: never;
+  form?: never;
+} & ButtonPropsBase;
+
+type ButtonProps =
+  | ButtonPropsForButton
+  | ButtonPropsForDiv
+  | ButtonPropsForAnchor
+  | ButtonPropsForNextLink
+  | (ButtonPropsBase & {
+      // Fallback when tag omitted or mismatched; we'll normalize below.
+      type?: "button" | "submit" | "reset";
+      form?: string;
+    });
 
 export const Button = ({
   className,
   variant,
-  tag: Tag = "button",
+  tag = "button",
   children,
   type = "button",
   href,
@@ -31,76 +78,101 @@ export const Button = ({
   form,
   ...props
 }: ButtonProps) => {
-  const isLink = Tag === Link;
+  const isTrulyDisabled =
+    disabled || variant === "disabled" || variant === "link-disabled";
 
-  // shared props
-  const common = {
-    onClick,
-    form,
-    "aria-disabled": disabled || variant === "disabled" || variant === "link-disabled" ? true : undefined,
-  };
+  const content = icon ? (
+    <>
+      <Image src={icon} alt="icon" />
+      <Text.Span>{children}</Text.Span>
+    </>
+  ) : (
+    <Text.Span>{children}</Text.Span>
+  );
 
-  if (icon) {
-    const content = (
-      <>
-        <Image src={icon} alt="icon" />
-        <Text.Span>{children}</Text.Span>
-      </>
-    );
-
-    if (isLink && href) {
-      return (
-        <Link
-          href={href}
-          className={cn(buttonVariants({ variant }), className)}
-          {...common}
-          {...props}
-        >
-          {content}
-        </Link>
-      );
-    }
-
-    return (
-      <Tag
-        {...props}
-        {...common}
-        className={cn(buttonVariants({ variant }), className)}
-        // @ts-expect-error href is ignored for non-anchors
-        href={href || undefined}
-        type={type}
-        disabled={disabled || variant === "disabled" || variant === "link-disabled"}
-      >
-        {content}
-      </Tag>
-    );
-  }
-
-  if (isLink && href) {
+  // 1) Next.js Link – only if href is provided
+  if (tag === Link && href) {
     return (
       <Link
         href={href}
         className={cn(buttonVariants({ variant }), className)}
-        {...common}
+        aria-disabled={isTrulyDisabled || undefined}
+        onClick={(e) => {
+          if (isTrulyDisabled) {
+            e.preventDefault();
+            e.stopPropagation();
+            return;
+          }
+          onClick?.(e as any);
+        }}
         {...props}
       >
-        <Text.Span>{children}</Text.Span>
+        {content}
       </Link>
     );
   }
 
+  // 2) Native anchor – only if href is provided
+  if (tag === "a" && href) {
+    return (
+      <a
+        href={isTrulyDisabled ? undefined : href}
+        className={cn(buttonVariants({ variant }), className)}
+        aria-disabled={isTrulyDisabled || undefined}
+        onClick={(e) => {
+          if (isTrulyDisabled) {
+            e.preventDefault();
+            e.stopPropagation();
+            return;
+          }
+          onClick?.(e as any);
+        }}
+        {...props}
+      >
+        {content}
+      </a>
+    );
+  }
+
+  // 3) Everything else -> normalize to 'button' | 'div' (no href here ever)
+  const BtnTag: "button" | "div" = tag === "div" ? "div" : "button";
+
+  const baseProps = {
+    className: cn(buttonVariants({ variant }), className),
+    "aria-disabled": isTrulyDisabled || undefined,
+    ...props,
+  };
+
+  if (BtnTag === "button") {
+    return (
+      <button
+        {...baseProps}
+        type={type}
+        disabled={isTrulyDisabled}
+        form={form}
+        onClick={onClick as MouseEventHandler<HTMLButtonElement> | undefined}
+      >
+        {content}
+      </button>
+    );
+  }
+
+  // Render as div (interactive container)
   return (
-    <Tag
-      {...props}
-      {...common}
-      className={cn(buttonVariants({ variant }), className)}
-      // @ts-expect-error href is ignored for non-anchors
-      href={href || undefined}
-      type={type}
-      disabled={disabled || variant === "disabled" || variant === "link-disabled"}
+    <div
+      {...baseProps}
+      onClick={onClick as MouseEventHandler<HTMLDivElement> | undefined}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (isTrulyDisabled) return;
+        if (e.key === "Enter" || e.key === " ") {
+          (onClick as any)?.(e);
+        }
+      }}
     >
-      <Text.Span>{children}</Text.Span>
-    </Tag>
+      {content}
+    </div>
   );
 };
 
@@ -147,7 +219,7 @@ const buttonVariants = cva(
           "bg-transparent border-transparent",
           "text-primary underline underline-offset-4",
           "hover:text-primary/80",
-          "p-0", // no padding for pure links
+          "p-0",
         ].join(" "),
 
         // Disabled link look

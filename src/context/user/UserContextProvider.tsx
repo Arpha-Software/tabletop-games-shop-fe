@@ -3,7 +3,6 @@
 import { PropsWithChildren, useEffect, useRef, useState, useCallback } from "react";
 import { UserContext } from "./context";
 import { TUser } from "@/utils/types";
-import { Loader } from "@/app/ui/components/Loader";
 import { EUserRole } from "@/utils/enums";
 import { getCurrentUser } from "@/app/actions/auth";
 import { usePathname } from 'next/navigation';
@@ -67,7 +66,7 @@ export const UserContextProvider = ({ children }: TProps) => {
 
   return (
     <UserContext.Provider value={{ user, isAdmin, loading, setUser }}>
-      {loading ? <Loader /> : children}
+      {children}
     </UserContext.Provider>
   );
 };

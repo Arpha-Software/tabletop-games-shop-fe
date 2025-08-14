@@ -5,10 +5,10 @@ import { Button, Input } from '@/app/ui/components';
 import { Text } from '@/utils/ui/Text';
 import { getAllBlogPosts, createBlogPost, deleteBlogPost, TBlogPost, TCreateBlogPost, TImageUpload } from '@/app/actions/blog';
 import toast from 'react-hot-toast';
-import { Loader } from '@/app/ui/components/Loader';
 import { useRouter } from 'next/navigation';
 import { z } from 'zod';
 import { format } from 'date-fns';
+import { RubikLoadable } from '../../../../ui/components/Loader';
 
 const blogPostSchema = z.object({
   title: z.string().min(3, { message: "Заголовок повинен містити щонайменше 3 символи." }),
@@ -126,162 +126,160 @@ export const BlogTab = () => {
     router.push(`/blog/${id}`);
   };
 
-  if (loading) {
-    return <Loader />;
-  }
-
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <Text.Header>Управління блогом</Text.Header>
-        <Button 
-          variant="primary" 
-          onClick={() => {
-            setShowForm(true);
-            setEditingPost(null);
-            setFormData({ title: '', content: '' });
-          }}
-        >
-          Додати статтю
-        </Button>
-      </div>
+    <RubikLoadable loading={loading} fullscreen dim="rgba(255,255,255,.6)" wobble size={160}>
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <Text.Header>Управління блогом</Text.Header>
+          <Button
+            variant="primary" 
+            onClick={() => {
+              setShowForm(true);
+              setEditingPost(null);
+              setFormData({ title: '', content: '' });
+            }}
+          >
+            Додати статтю
+          </Button>
+        </div>
 
-      {showForm && (
-        <div className="bg-gray-50 p-6 rounded-lg">
-          <div className="flex justify-between items-center mb-4">
-            <Text.Header className="text-lg">
-              {editingPost ? 'Редагувати статтю' : 'Створити нову статтю'}
-            </Text.Header>
-            <Button 
-              variant="secondary" 
-              onClick={handleCancel}
-            >
-              Скасувати
-            </Button>
-          </div>
-          
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Заголовок
-              </label>
-              <Input
-                value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                placeholder="Введіть заголовок статті"
-              />
-              {formErrors.title && (
-                <Text.Paragraph className="text-red-500 text-sm mt-1">{formErrors.title[0]}</Text.Paragraph>
-              )}
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Зміст
-              </label>
-              <textarea
-                value={formData.content}
-                onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                placeholder="Введіть зміст статті"
-                rows={10}
-                className="w-full p-3 border border-secondary-100 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-              />
-              {formErrors.content && (
-                <Text.Paragraph className="text-red-500 text-sm mt-1">{formErrors.content[0]}</Text.Paragraph>
-              )}
-            </div>
-            
-            {/* TODO: Add image upload functionality here. This will involve handling file inputs and uploading images to a storage service to get a UUID. */}
-            <div className="flex gap-4">
-              <Button type="submit" variant="primary">
-                {editingPost ? 'Оновити' : 'Створити'}
-              </Button>
+        {showForm && (
+          <div className="bg-gray-50 p-6 rounded-lg">
+            <div className="flex justify-between items-center mb-4">
+              <Text.Header className="text-lg">
+                {editingPost ? 'Редагувати статтю' : 'Створити нову статтю'}
+              </Text.Header>
               <Button 
-                type="button" 
                 variant="secondary" 
                 onClick={handleCancel}
               >
                 Скасувати
               </Button>
             </div>
-          </form>
-        </div>
-      )}
-
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  ID
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Заголовок
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Автор
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Дата створення
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Дії
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {blogPosts.map((post) => (
-                <tr key={post.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {post.id}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {post.title}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {post.author}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {format(new Date(post.createdAt), 'dd.MM.yyyy')}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <div className="flex gap-2">
-                      <Button
-                        variant="secondary"
-                        className="text-xs px-3 py-1"
-                        onClick={() => handleEdit(post)}
-                      >
-                        Редагувати
-                      </Button>
-                      <Button
-                        variant="secondary"
-                        className="text-xs px-3 py-1 text-red-600 hover:text-red-800"
-                        onClick={() => handleDelete(post.id)}
-                      >
-                        Видалити
-                      </Button>
-                      <Button
-                        variant="secondary"
-                        className="text-xs px-3 py-1 text-blue-600 hover:text-blue-800"
-                        onClick={() => handleViewPost(post.id)}
-                      >
-                        Переглянути
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        
-        {blogPosts.length === 0 && (
-          <div className="text-center py-8 text-gray-500">
-            Статей не знайдено
+                </label>
+                <Input
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  placeholder="Введіть заголовок статті"
+                />
+                {formErrors.title && (
+                  <Text.Paragraph className="text-red-500 text-sm mt-1">{formErrors.title[0]}</Text.Paragraph>
+                )}
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Зміст
+                </label>
+                <textarea
+                  value={formData.content}
+                  onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                  placeholder="Введіть зміст статті"
+                  rows={10}
+                  className="w-full p-3 border border-secondary-100 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                />
+                {formErrors.content && (
+                  <Text.Paragraph className="text-red-500 text-sm mt-1">{formErrors.content[0]}</Text.Paragraph>
+                )}
+              </div>
+              
+              {/* TODO: Add image upload functionality here. This will involve handling file inputs and uploading images to a storage service to get a UUID. */}
+              <div className="flex gap-4">
+                <Button type="submit" variant="primary">
+                  {editingPost ? 'Оновити' : 'Створити'}
+                </Button>
+                <Button 
+                  type="button" 
+                  variant="secondary" 
+                  onClick={handleCancel}
+                >
+                  Скасувати
+                </Button>
+              </div>
+            </form>
           </div>
         )}
+
+        <div className="bg-white rounded-lg shadow overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    ID
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Заголовок
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Автор
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Дата створення
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Дії
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {blogPosts.map((post) => (
+                  <tr key={post.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {post.id}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      {post.title}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {post.author}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {format(new Date(post.createdAt), 'dd.MM.yyyy')}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <div className="flex gap-2">
+                        <Button
+                          variant="secondary"
+                          className="text-xs px-3 py-1"
+                          onClick={() => handleEdit(post)}
+                        >
+                          Редагувати
+                        </Button>
+                        <Button
+                          variant="secondary"
+                          className="text-xs px-3 py-1 text-red-600 hover:text-red-800"
+                          onClick={() => handleDelete(post.id)}
+                        >
+                          Видалити
+                        </Button>
+                        <Button
+                          variant="secondary"
+                          className="text-xs px-3 py-1 text-blue-600 hover:text-blue-800"
+                          onClick={() => handleViewPost(post.id)}
+                        >
+                          Переглянути
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          
+          {blogPosts.length === 0 && (
+            <div className="text-center py-8 text-gray-500">
+              Статей не знайдено
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </RubikLoadable>
   );
 };

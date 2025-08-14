@@ -144,10 +144,6 @@ export default function RootLayout({
                       },
                     }}
                   />
-
-
-
-
                   <CartSidebar />
                 </WishlistContextProvider>
               </CartContextProvider>

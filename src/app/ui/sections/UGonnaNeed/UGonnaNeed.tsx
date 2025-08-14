@@ -1,11 +1,11 @@
-// src/app/ui/sections/UGonnaNeed/UGonnaNeed.tsx
 'use client';
 
 import Link from 'next/link';
-import { Button, Container, Loader, ProductCard } from '@/app/ui/components';
+import { Button, Container, ProductCard } from '@/app/ui/components';
 import { Text } from '@/utils/ui/Text';
 import { useProductsContext } from '@/context/product/context';
 import { TProduct } from '@/utils/types';
+import { RubikLoadable } from '../../components/Loader';
 
 type Props = {
   items?: TProduct[];
@@ -19,9 +19,9 @@ export const UGonnaNeed = ({ items, title = 'Вам це точно знадоб
   const isLoading = items ? false : loading;
 
   return (
-    <Container className='relative mt-20'>
-      {!isLoading ? (
-        list.length > 0 ? (
+    <RubikLoadable loading={loading} fullscreen dim="rgba(255,255,255,.6)" wobble size={160}>
+      <Container className='relative mt-20'>
+        {list.length > 0 ? (
           <>
             <Text.Header className='mb-10'>{title}</Text.Header>
             <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
@@ -38,12 +38,8 @@ export const UGonnaNeed = ({ items, title = 'Вам це точно знадоб
           </>
         ) : (
           <div className="flex items-center justify-center h-40 text-gray-500">Немає рекомендацій</div>
-        )
-      ) : (
-        <div className="flex items-center justify-center h-64">
-          <Loader />
-        </div>
-      )}
-    </Container>
+        )}
+      </Container>
+    </RubikLoadable>
   );
 };

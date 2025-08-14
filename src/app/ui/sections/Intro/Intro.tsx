@@ -1,3 +1,5 @@
+'use client';
+
 import { Container, Button } from '@/app/ui/components';
 import { Text } from '@/utils/ui/Text';
 import Link from 'next/link';
