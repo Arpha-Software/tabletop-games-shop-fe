@@ -5,41 +5,36 @@ import { apiClient } from "@/utils/apiClient";
 import { TProductType } from "@/utils/types"; // Import ProductType type
 import { cookies } from 'next/headers'; // Import cookies
 
-export const getAllProductTypes = async () => { // Removed authToken parameter
+export const getAllProductTypes = async () => {
   try {
-    const authToken = cookies().get('authToken')?.value; // Get token from cookie
+    const authToken = cookies().get('authToken')?.value;
 
     const headers: HeadersInit = {};
-    if (authToken) {
-      headers['Authorization'] = `Bearer ${authToken}`;
-    }
+    if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
 
-    const data = await apiClient.get<any>('/api/v1/product-types', headers);
-    return {
-      success: true,
-      errors: [],
-      data: data.content as TProductType[],
-    };
+    const raw = await apiClient.get<any>('/api/v1/product-types', headers);
+
+    // Нормалізація: або page.content, або одразу масив
+    const list: TProductType[] = Array.isArray(raw?.content)
+      ? raw.content
+      : Array.isArray(raw)
+        ? raw
+        : [];
+
+    return { success: true, errors: [], data: list };
   } catch (error: any) {
     console.error("Get All Product Types Error:", error);
-    if (error) {
-      return {
-        success: false,
-        errors: error.data?.errors || [error.message],
-        data: [],
-      };
-    }
     return {
       success: false,
-      errors: [error.message],
+      errors: error?.data?.errors || [error?.message || 'Unknown error'],
       data: [],
     };
   }
 };
 
-export const createProductType = async (productTypeData: Omit<TProductType, 'id'>) => { // Removed authToken parameter
+export const createProductType = async (productTypeData: Omit<TProductType, 'id'>) => {
   try {
-    const authToken = cookies().get('authToken')?.value; // Get token from cookie
+    const authToken = cookies().get('authToken')?.value;
 
     const headers: HeadersInit = {};
     if (authToken) {
@@ -47,8 +42,16 @@ export const createProductType = async (productTypeData: Omit<TProductType, 'id'
     } else {
       return { success: false, errors: ['Authentication token not provided for product type creation.'] };
     }
+    const data = {
+      name: productTypeData.name,
+      width: productTypeData.dimension.width,
+      height: productTypeData.dimension.height,
+      weight: productTypeData.dimension.weight,
+      length: productTypeData.dimension.length,
+    }
 
-    await apiClient.post<TProductType>('/api/v1/product-types', productTypeData, headers);
+    console.log('PRODUCT TYPE REQUEST BODY: ', data)
+    await apiClient.post<TProductType>('/api/v1/product-types', data, headers);
     return {
       success: true,
       errors: [],

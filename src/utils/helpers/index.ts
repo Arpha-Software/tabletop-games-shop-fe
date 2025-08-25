@@ -36,3 +36,24 @@ export function unwrapList<T>(data: unknown): T[] {
   if (Array.isArray(anyData?.content)) return anyData.content as T[];
   return [];
 }
+
+export const parseRange = (s?: string): [number | '', number | ''] => {
+  if (!s) return ['', ''];
+  const m = s.match(/(\d+)\s*[-–]\s*(\d+)/);
+  if (!m) return ['', ''];
+  return [Number(m[1]), Number(m[2])];
+};
+
+export const parseFirstInt = (s?: string): number | '' => {
+  if (!s) return '';
+  const m = s.match(/(\d+)/);
+  return m ? Number(m[1]) : '';
+};
+
+export const parsePlaytime = (s?: string): [number | '', number | ''] => {
+  if (!s) return ['', ''];
+  const m = s.match(/(\d+)\s*[-–]\s*(\d+)/);
+  if (m) return [Number(m[1]), Number(m[2])];
+  const single = s.match(/(\d+)/);
+  return single ? [Number(single[1]), Number(single[1])] : ['', ''];
+};

@@ -1,68 +1,129 @@
+// src/app/catalogue/[product]/ui/components/Gallery/Gallery.tsx
 'use client';
 
 import Image from 'next/image';
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Preview } from './components/Preview';
+import { cn } from '@/utils/helpers';
 
-type TProps = {
-  images: string[];
-};
+type TProps = { images: string[] };
+
+const BoxPlaceholder = ({ className }: { className?: string }) => (
+  <div className={cn('grid place-items-center rounded-xl border border-secondary-100 bg-secondary-50 text-gray-400', className)}>
+    <span className="text-xs">Немає фото</span>
+  </div>
+);
 
 export const Gallery = ({ images }: TProps) => {
-  const [showPreview, setShowPreview] = useState(false);
-  const [previewImageIndex, setPreviewImageIndex] = useState(0);
+  const normalized = (images || []).filter((s) => !!s && typeof s === 'string');
+  const hasAny = normalized.length > 0;
 
-  const openPreview = (index: number) => {
-    setPreviewImageIndex(index);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [showPreview, setShowPreview] = useState(false);
+
+  const openPreview = (idx: number) => {
+    if (!hasAny) return;
+    setActiveIndex(idx);
     setShowPreview(true);
   };
 
-  const closePreview = () => {
-    setShowPreview(false);
-  };
-
-  if (!images || images.length === 0) {
-    return (
-      <div className='w-full flex gap-4'>
-        <div className='w-[512px] h-[512px] bg-slate-400 rounded-lg flex items-center justify-center'>
-          <span className='text-gray-500'>No image available</span>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <>
-      <div className='w-full flex gap-4'>
-        <Image
-          src={images[0]}
-          alt='Main product image'
-          width={1000}
-          height={1000}
-          className='w-[512px] h-[512px] bg-slate-400 rounded-lg object-cover cursor-pointer'
-          onClick={() => openPreview(0)}
-        />
+      <div className="flex gap-4 md:gap-4">
+        {/* MAIN (always square) */}
+        <button
+          type="button"
+          onClick={() => openPreview(activeIndex)}
+          aria-label="Відкрити перегляд зображення"
+          className={cn(
+            'relative overflow-hidden rounded-xl ring-1 ring-gray-200 bg-white',
+            'w-[340px] md:w-[420px] lg:w-[516px]',
+            'aspect-square' // <-- this ensures width == height
+          )}
+        >
+          {hasAny ? (
+            <Image
+              src={normalized[Math.min(activeIndex, normalized.length - 1)]}
+              alt="Фото товару"
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 88vw, (max-width: 1024px) 420px, 516px"
+              priority
+            />
+          ) : (
+            <BoxPlaceholder className="w-full h-full" />
+          )}
+        </button>
 
-        {images.length > 1 && (
-          <div className='flex flex-col justify-start gap-4'>
-            {images.slice(1, 4).map((image, index) => (
-              <Image
-                key={index}
-                src={image}
-                alt={`Product image ${index + 2}`}
-                width={512}
-                height={512}
-                className='w-40 h-40 bg-slate-400 rounded-lg object-cover cursor-pointer'
-                onClick={() => openPreview(index + 1)}
-              />
-            ))}
-          </div>
-        )}
+        {/* THUMBS (VERTICAL, MD+) */}
+        <div className="hidden md:flex md:flex-col gap-3 flex-none w-[96px] lg:w-[120px]">
+          {Array.from({ length: 4 }).map((_, i) => {
+            const idx = i;
+            const src = normalized[idx];
+            const active = idx === activeIndex;
+            return (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => setActiveIndex(idx)}
+                aria-label={`Зображення ${idx + 1}`}
+                className={cn(
+                  'relative w-full aspect-square rounded-lg overflow-hidden ring-1 ring-gray-200 transition',
+                  'hover:ring-primary/40 focus:outline-none focus:ring-2 focus:ring-primary/30',
+                  active ? 'ring-2 ring-primary' : ''
+                )}
+              >
+                {src ? (
+                  <Image
+                    src={src}
+                    alt=""
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 1024px) 96px, 120px"
+                  />
+                ) : (
+                  <BoxPlaceholder className="w-full h-full" />
+                )}
+              </button>
+            );
+          })}
+        </div>
       </div>
+
+      {/* MOBILE THUMBS */}
+      <div className="md:hidden mt-3 -mx-1">
+        <div className="flex gap-3 overflow-x-auto px-1 snap-x snap-mandatory scrollbar-thin">
+          {(hasAny ? normalized : Array.from({ length: 3 })).map((src, idx) => {
+            const active = idx === activeIndex;
+            return (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => setActiveIndex(idx)}
+                aria-label={`Зображення ${idx + 1}`}
+                className={cn(
+                  'relative shrink-0 snap-start rounded-lg overflow-hidden ring-1 ring-gray-200 transition',
+                  'hover:ring-primary/40 focus:outline-none focus:ring-2 focus:ring-primary/30',
+                  active ? 'ring-2 ring-primary' : ''
+                )}
+                style={{ width: 72, height: 72 }}
+              >
+                {src ? (
+                  <Image src={String(src)} alt="" fill className="object-cover" sizes="72px" />
+                ) : (
+                  <BoxPlaceholder className="w-full h-full" />
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       {showPreview &&
+        hasAny &&
         createPortal(
-          <Preview images={images} initialImageIndex={previewImageIndex} onClose={closePreview} />,
+          <Preview images={normalized} initialImageIndex={activeIndex} onClose={() => setShowPreview(false)} />,
           document.body
         )}
     </>

@@ -14,7 +14,7 @@ import { getAllProductTypes } from '@/app/actions/productTypes';
 import { TProduct } from '@/utils/types';
 import { ProductForm } from './components/ProductForm';
 import { ProductTable } from './components/ProductTable';
-import { unwrapList } from '@/utils/helpers';
+import { parseFirstInt, parsePlaytime, parseRange, unwrapList } from '@/utils/helpers';
 import { RubikLoadable } from '../../../../ui/components/Loader';
 
 const initialProductData = {
@@ -222,34 +222,85 @@ export const ProductsTab = () => {
     }
   };
 
+// ЗАМІНИ СВІЙ handleEdit НА ЦЕЙ
   const handleEdit = (product: TProduct) => {
+    // product type id (різні бек-варианти)
+    const productTypeId =
+      (product as any)?.type?.id ??
+      (product as any)?.productType?.id ??
+      (product as any)?.productTypeId ??
+      '';
+
+    // game details
+    const gd = (product as any)?.gameDetails ?? {};
+    const [minPlayers, maxPlayers] = gd.minPlayerNumber != null && gd.maxPlayerNumber != null
+      ? [gd.minPlayerNumber, gd.maxPlayerNumber]
+      : parseRange(gd.players);
+
+    const [minPT, maxPT] = (gd.minPlayTime != null && gd.maxPlayTime != null)
+      ? [gd.minPlayTime, gd.maxPlayTime]
+      : parsePlaytime(gd.playTime);
+
+    const minAge = gd.minAge != null ? gd.minAge : parseFirstInt(gd.age);
+
+    // classification
+    const cl = (product as any)?.classification ?? {};
+    // Масиви як і раніше — string[]
+    const categories = Array.isArray(cl.categories) ? cl.categories : [];
+    const genres = Array.isArray(cl.genres) ? cl.genres : [];
+    const mechanics = Array.isArray(cl.mechanics) ? cl.mechanics : [];
+
+    // publication
+    const pub = (product as any)?.publicationDetails ?? {};
+
+    // media
+    const media = (product as any)?.media ?? {};
+    const rulesLink = media.rulesLink ?? '';
+
+    // dimensions (на майбутнє)
+    const dim = (product as any)?.dimensions ?? {};
+    const width  = dim.width  ?? '';
+    const length = dim.length ?? '';
+    const height = dim.height ?? '';
+    const weight = dim.weight ?? '';
+
     setEditingProduct(product);
     setProductData({
-      name: product.name,
-      productTypeId: '',
-      description: product.description,
+      name: product.name ?? '',
+      productTypeId: productTypeId || '',
+      description: product.description ?? '',
       price: product.price?.toString?.() ?? '',
       quantity: product.quantity?.toString?.() ?? '0',
-      minPlayerNumber: '',
-      maxPlayerNumber: '',
-      minPlayTime: '',
-      maxPlayTime: '',
-      minAge: '',
-      language: product.classification?.language || '',
-      publisher: product.publicationDetails?.publisher || '',
-      author: product.publicationDetails?.author || '',
-      bggRating: product.gameDetails?.bggRating?.toString() || '0',
-      complexity: product.gameDetails?.complexity?.toString() || '0',
-      components: product.gameDetails?.components || '',
-      mechanics: product.classification?.mechanics || [],
-      rulesLink: '',
-      width: '',
-      length: '',
-      height: '',
-      weight: '',
-      categories: product.classification?.categories || [],
-      genres: product.classification?.genres || [],
+
+      // parsed
+      minPlayerNumber: minPlayers !== '' ? String(minPlayers) : '',
+      maxPlayerNumber: maxPlayers !== '' ? String(maxPlayers) : '',
+      minPlayTime:     minPT     !== '' ? String(minPT)     : '',
+      maxPlayTime:     maxPT     !== '' ? String(maxPT)     : '',
+      minAge:          minAge    !== '' ? String(minAge)    : '',
+
+      language: cl.language ?? '',
+      publisher: pub.publisher ?? '',
+      author: pub.author ?? '',
+
+      // важливо: не затирай значення, якщо > 10 — твій input має max=10,
+      // але хай показує, інакше користувач думає, що пусто
+      bggRating: (gd.bggRating ?? '').toString(),
+      complexity: (gd.complexity ?? '').toString(),
+      components: gd.components ?? '',
+
+      mechanics,
+      rulesLink,
+
+      width:  width  !== '' ? String(width)  : '',
+      length: length !== '' ? String(length) : '',
+      height: height !== '' ? String(height) : '',
+      weight: weight !== '' ? String(weight) : '',
+
+      categories,
+      genres,
     });
+
     setShowCreateForm(true);
   };
 

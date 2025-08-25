@@ -2,68 +2,49 @@
 'use server';
 
 import { apiClient } from "@/utils/apiClient";
-import { TGenre } from "@/utils/types"; // Import Genre type
-import { cookies } from 'next/headers'; // Import cookies
+import { TGenre } from "@/utils/types";
+import { cookies } from 'next/headers';
 
-export const getAllGenres = async () => { // Removed authToken parameter
+export const getAllGenres = async () => {
   try {
-    const authToken = cookies().get('authToken')?.value; // Get token from cookie
-
+    const authToken = cookies().get('authToken')?.value;
     const headers: HeadersInit = {};
-    if (authToken) {
-      headers['Authorization'] = `Bearer ${authToken}`;
-    }
+    if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
 
-    const data = await apiClient.get<any>('/api/v1/genres', headers);
-    return {
-      success: true,
-      errors: [],
-      data: data.content as TGenre[],
-    };
+    const raw = await apiClient.get<any>('/api/v1/genres', headers);
+
+    // Accept both paged { content: [...] } and plain [...]
+    const list: TGenre[] = Array.isArray(raw?.content)
+      ? raw.content
+      : Array.isArray(raw)
+        ? raw
+        : [];
+
+    return { success: true, errors: [], data: list };
   } catch (error: any) {
     console.error("Get All Genres Error:", error);
-    if (error) {
-      return {
-        success: false,
-        errors: error.data?.errors || [error.message],
-        data: [],
-      };
-    }
     return {
       success: false,
-      errors: [error.message],
+      errors: error?.data?.errors || [error?.message || 'Unknown error'],
       data: [],
     };
   }
 };
 
-export const createGenre = async (genreData: Omit<TGenre, 'id'>) => { // Removed authToken parameter
+export const createGenre = async (genreData: Omit<TGenre, 'id'>) => {
   try {
-    const authToken = cookies().get('authToken')?.value; // Get token from cookie
-
+    const authToken = cookies().get('authToken')?.value;
     const headers: HeadersInit = {};
-    if (authToken) {
-      headers['Authorization'] = `Bearer ${authToken}`;
-    } else {
-      return { success: false, errors: ['Authentication token not provided for genre creation.'] };
-    }
+    if (!authToken) return { success: false, errors: ['Authentication token not provided for genre creation.'] };
+    headers['Authorization'] = `Bearer ${authToken}`;
 
     await apiClient.post<TGenre>('/api/v1/genres', genreData, headers);
-    return {
-      success: true,
-      errors: [],
-    };
+    return { success: true, errors: [] };
   } catch (error: any) {
     console.error("Create Genre Error:", error);
-    if (error) {
-      return {
-        success: false,
-        errors: error.data?.errors || [error.message],
-      };
-    }
     return {
       success: false,
-      errors: [error.message],
+      errors: error?.data?.errors || [error?.message || 'Unknown error'],
     };
   }
 };

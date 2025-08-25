@@ -291,6 +291,34 @@ export const getAllProducts = async (filters: ProductFilterRequestBody & { page?
   }
 };
 
+export const searchProductsQuick = async (q: string, limit = 8) => {
+  if (!q?.trim()) {
+    return { success: true, errors: [], data: [] as TProduct[] };
+  }
+
+  try {
+    const data = await withAutoRefresh(async (authToken) => {
+      const headers: HeadersInit = { 'Content-Type': 'application/json' };
+      if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+
+      // Reuse /filter; body { name } does "contains" search on backend as per your normalization
+      return apiClient.post<{ content: TProduct[] }>(
+        `/api/v1/products/filter?page=0&size=${limit}&sort=id,desc`,
+        { name: q.trim() },
+        headers,
+        undefined,
+        { cache: 'no-store' }
+      );
+    });
+
+    return { success: true, errors: [], data: data.content ?? [] };
+  } catch (error: any) {
+    console.error('Error quick-searching products:', error);
+    return { success: false, errors: error?.data?.errors || [error?.message], data: [] as TProduct[] };
+  }
+};
+
+
 export const getProductsRecommendations = async (page: number) => {
   try {
     const data = await withAutoRefresh(async (authToken) => {

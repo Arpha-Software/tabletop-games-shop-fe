@@ -8,6 +8,7 @@ import { Addons } from '../Addons';
 import { Reviews } from '../Reviews';
 import { DeliveryInfo } from '../DeliveryInfo';
 import { TProduct } from '@/utils/types';
+import { cn } from '@/utils/helpers';
 
 type TProps = {
   product: TProduct | null;
@@ -31,11 +32,18 @@ export const ProductTabs = ({ product, productId, selectedAddons, setSelectedAdd
   const renderTabContent = () => {
     switch (activeTab) {
       case 'description':
-        return <Description text={product?.description || ''} className='mt-6' />;
+        return <Description text={product?.description || ''} className="mt-6" />;
       case 'characteristics':
         return <Characteristics product={product} />;
       case 'addons':
-        return <Addons product={product} selectedAddons={selectedAddons} setSelectedAddons={setSelectedAddons} mainProductLoading={mainProductLoading} />;
+        return (
+          <Addons
+            product={product}
+            selectedAddons={selectedAddons}
+            setSelectedAddons={setSelectedAddons}
+            mainProductLoading={mainProductLoading}
+          />
+        );
       case 'reviews':
         return <Reviews productId={productId} />;
       case 'delivery':
@@ -47,21 +55,35 @@ export const ProductTabs = ({ product, productId, selectedAddons, setSelectedAdd
 
   return (
     <div>
-      <div className="border-b flex gap-8">
-        {TABS.map(tab => (
-          <Button
-            key={tab.key}
-            variant={activeTab === tab.key ? 'plain-focus' : 'plain'}
-            className={activeTab === tab.key ? '' : 'text-black'}
-            onClick={() => setActiveTab(tab.key)}
-          >
-            {tab.label}
-          </Button>
-        ))}
+      {/* Pills / segmented control */}
+      <div
+        className={cn(
+          'inline-flex flex-wrap gap-2 p-1 rounded-full border border-gray-200 bg-gray-50/60',
+          'shadow-inner'
+        )}
+      >
+        {TABS.map((tab) => {
+          const active = activeTab === tab.key;
+          return (
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => setActiveTab(tab.key)}
+              className={cn(
+                'px-4 py-2 text-sm rounded-full transition-colors',
+                active
+                  ? 'bg-white text-gray-900 shadow-sm border border-gray-200'
+                  : 'text-gray-700 hover:text-gray-900'
+              )}
+              aria-current={active ? 'page' : undefined}
+            >
+              {tab.label}
+            </button>
+          );
+        })}
       </div>
-      <div>
-        {renderTabContent()}
-      </div>
+
+      <div>{renderTabContent()}</div>
     </div>
   );
 };

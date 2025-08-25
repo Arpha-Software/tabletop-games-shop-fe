@@ -8,17 +8,13 @@ import { Gallery } from '../../components/Gallery';
 import { ProductDetails } from '../../components/ProductDetails';
 import { ProductTabs } from '../../components/ProductTabs';
 
-type TProps = {
-  productId: string;            // keep if children need id
-  product: TProduct | null;     // SSR-provided
-};
+type TProps = { productId: string; product: TProduct | null };
 
 export const ProductIntro = ({ productId, product }: TProps) => {
   const [selectedAddons, setSelectedAddons] = useState<number[]>([]);
   const [mainProductLoading, setMainProductLoading] = useState(false);
 
   if (!product) {
-    // handle gracefully
     return (
       <Container className="py-16">
         <div className="text-center text-gray-600">Товар не знайдено.</div>
@@ -26,29 +22,44 @@ export const ProductIntro = ({ productId, product }: TProps) => {
     );
   }
 
-  const mainImg = product.media?.mainImgLink || "https://via.placeholder.com/1440";
-  const photos = product.media?.photos && product.media.photos.length > 0
-    ? [mainImg, ...product.media.photos]
-    : [mainImg];
+  const mainImg = product.media?.mainImgLink || '';
+  const photos = product.media?.photos?.length ? [mainImg, ...product.media.photos] : [mainImg];
 
   return (
-    <Container className='flex flex-col gap-10'>
-      <div className='flex justify-between'>
-        <Gallery images={photos} />
-        <ProductDetails
+    <Container className="py-8">
+      {/* 2 columns: Gallery | Details */}
+      <div
+        className="
+          md:flex gap-20
+          lg:gap-10
+        "
+      >
+        {/* Left: gallery column (natural height defines sticky boundary) */}
+        <div className="justify-self-center lg:justify-self-start">
+          <Gallery images={photos} />
+        </div>
+
+        {/* Right: sticky details column */}
+        <div className="w-full lg:sticky lg:top-20 self-start max-w-[600px]">
+          {/* top offset ~ header height; tweak top value if header changes */}
+          <ProductDetails
+            product={product}
+            productId={productId}
+            selectedAddons={selectedAddons}
+            setMainProductLoading={setMainProductLoading}
+          />
+        </div>
+      </div>
+
+      <div className="mt-10">
+        <ProductTabs
           product={product}
           productId={productId}
           selectedAddons={selectedAddons}
-          setMainProductLoading={setMainProductLoading}
+          setSelectedAddons={setSelectedAddons}
+          mainProductLoading={mainProductLoading}
         />
       </div>
-      <ProductTabs
-        product={product}
-        productId={productId}
-        selectedAddons={selectedAddons}
-        setSelectedAddons={setSelectedAddons}
-        mainProductLoading={mainProductLoading}
-      />
     </Container>
   );
 };

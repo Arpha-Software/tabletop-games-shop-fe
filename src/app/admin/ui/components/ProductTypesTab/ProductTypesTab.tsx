@@ -1,19 +1,125 @@
+// src/app/admin/ui/components/ProductTypesTab/ProductTypesTab.tsx
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, memo } from 'react';
+import toast from 'react-hot-toast';
 import { Button, Input } from '@/app/ui/components';
 import { Text } from '@/utils/ui/Text';
 import { getAllProductTypes, createProductType } from '@/app/actions/productTypes';
 import { TProductType } from '@/utils/types';
-import toast from 'react-hot-toast';
 import { RubikLoadable } from '../../../../ui/components/Loader';
+import { cn } from '@/utils/helpers';
 
+/* ---------- Shared UI (same as Products tab) ---------- */
+const SectionCard = ({ title, subtitle, children, className }:{
+  title:string; subtitle?:string; children:React.ReactNode; className?:string;
+}) => (
+  <section className={cn('bg-white rounded-2xl shadow-card border border-secondary-100 p-6', className)}>
+    <div className="mb-5">
+      <Text.Header className="text-lg">{title}</Text.Header>
+      {subtitle ? <p className="text-sm text-gray-500 mt-1">{subtitle}</p> : null}
+    </div>
+    {children}
+  </section>
+);
+
+const Field = ({ label, children }:{label:string; children:React.ReactNode}) => (
+  <div className="space-y-2">
+    <label className="block text-sm font-medium text-gray-700">{label}</label>
+    {children}
+  </div>
+);
+
+const UnitInput = ({
+  name, value, onChange, unit, step
+}:{ name:string; value:any; onChange:(e:any)=>void; unit:string; step?:string }) => (
+  <div className="relative">
+    <Input name={name} type="number" value={value} onChange={onChange} step={step} className="pr-12" />
+    <span className="absolute inset-y-0 right-3 flex items-center text-xs text-gray-500">{unit}</span>
+  </div>
+);
+
+/* ---------- Memoized Form (prevents remounts) ---------- */
+type FormState = {
+  name: string;
+  width: string;
+  height: string;
+  weight: string;
+  length: string;
+};
+
+const ProductTypeForm = memo(function ProductTypeForm({
+  data,
+  setData,
+  onSubmit,
+  onCancel,
+  editing,
+}:{
+  data: FormState;
+  setData: React.Dispatch<React.SetStateAction<FormState>>;
+  onSubmit: (e: React.FormEvent) => void;
+  onCancel: () => void;
+  editing: boolean;
+}) {
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    // keep strings in state to avoid controlled/uncontrolled flips
+    setData(prev => ({ ...prev, [name]: value }));
+  }, [setData]);
+
+  return (
+    <SectionCard title={editing ? 'Редагувати тип продукту' : 'Створити новий тип продукту'}>
+      <form onSubmit={onSubmit} className="space-y-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Field label="Назва типу продукту">
+            <Input
+              name="name"
+              value={data.name}
+              onChange={handleInputChange}
+              placeholder="Напр., Board Game"
+              required
+            />
+          </Field>
+          <Field label="Вага (кг)">
+            <UnitInput
+              name="weight"
+              value={data.weight}
+              onChange={handleInputChange}
+              unit="кг"
+              step="0.001"
+            />
+          </Field>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Field label="Ширина (мм)">
+            <UnitInput name="width" value={data.width} onChange={handleInputChange} unit="мм" step="0.1" />
+          </Field>
+          <Field label="Довжина (мм)">
+            <UnitInput name="length" value={data.length} onChange={handleInputChange} unit="мм" step="0.1" />
+          </Field>
+          <Field label="Висота (мм)">
+            <UnitInput name="height" value={data.height} onChange={handleInputChange} unit="мм" step="0.1" />
+          </Field>
+        </div>
+
+        <div className="flex gap-3 justify-end">
+          <Button type="submit">{editing ? 'Оновити' : 'Створити'}</Button>
+          <Button type="button" variant="secondary" onClick={onCancel}>Скасувати</Button>
+        </div>
+      </form>
+    </SectionCard>
+  );
+});
+
+/* ---------- Main ---------- */
 export const ProductTypesTab = () => {
   const [productTypes, setProductTypes] = useState<TProductType[]>([]);
   const [loading, setLoading] = useState(true);
+
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingProductType, setEditingProductType] = useState<TProductType | null>(null);
-  const [productTypeData, setProductTypeData] = useState({
+  const [productTypeData, setProductTypeData] = useState<FormState>({
     name: '',
     width: '',
     height: '',
@@ -22,295 +128,168 @@ export const ProductTypesTab = () => {
   });
 
   useEffect(() => {
+    const fetchProductTypes = async () => {
+      try {
+        setLoading(true);
+        const response = await getAllProductTypes();
+        if (response.success) {
+          setProductTypes(response.data); // already normalized to array
+        } else {
+          toast.error(response.errors?.[0] || 'Помилка завантаження типів продуктів');
+        }
+      } catch {
+        toast.error('Помилка завантаження типів продуктів');
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchProductTypes();
   }, []);
 
-  const fetchProductTypes = async () => {
-    try {
-      setLoading(true);
-      const response = await getAllProductTypes();
-      
-      if (response.success) {
-        setProductTypes(response.data.content);
-      } else {
-        toast.error('Помилка завантаження типів продуктів');
-      }
-    } catch (error) {
-      toast.error('Помилка завантаження типів продуктів');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const resetForm = useCallback(() => {
+    setEditingProductType(null);
+    setProductTypeData({ name: '', width: '', height: '', weight: '', length: '' });
+  }, []);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setProductTypeData(prev => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
+  const handleCancel = useCallback(() => {
+    setShowCreateForm(false);
+    resetForm();
+  }, [resetForm]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleEdit = useCallback((pt: TProductType) => {
+    setEditingProductType(pt);
+    const d = (pt as any)?.dimension || {};
+    setProductTypeData({
+      name: pt.name ?? '',
+      width:  d?.width  != null ? String(d.width)  : '',
+      height: d?.height != null ? String(d.height) : '',
+      weight: d?.weight != null ? String(d.weight) : '',
+      length: d?.length != null ? String(d.length) : '',
+    });
+    setShowCreateForm(true);
+  }, []);
+
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!productTypeData.name.trim()) {
       toast.error('Назва типу продукту не може бути порожньою');
       return;
     }
 
     try {
-      const payload = {
+      const payload: Omit<TProductType, 'id'> = {
         name: productTypeData.name.trim(),
-        width: Number(productTypeData.width),
-        height: Number(productTypeData.height),
-        weight: Number(productTypeData.weight),
-        length: Number(productTypeData.length),
+        dimension: {
+          width:  Number(productTypeData.width)  || 0,
+          height: Number(productTypeData.height) || 0,
+          weight: Number(productTypeData.weight) || 0,
+          length: Number(productTypeData.length) || 0,
+        },
       };
 
-      const response = await createProductType(payload);
-      
-      if (response.success) {
-        toast.success(editingProductType ? 'Тип продукту оновлено успішно!' : 'Тип продукту створено успішно!');
-        setShowCreateForm(false);
-        setProductTypeData({
-          name: '',
-          width: '',
-          height: '',
-          weight: '',
-          length: '',
-        });
-        setEditingProductType(null);
-        fetchProductTypes();
-      } else {
-        toast.error(response.errors[0] || 'Помилка створення типу продукту');
+      const r = await createProductType(payload);
+      if (!r.success) {
+        toast.error(r.errors?.[0] || 'Помилка створення типу продукту');
+        return;
       }
-    } catch (error) {
+      toast.success(editingProductType ? 'Тип продукту оновлено успішно!' : 'Тип продукту створено успішно!');
+      setShowCreateForm(false);
+      resetForm();
+
+      // refresh list
+      setLoading(true);
+      try {
+        const resp = await getAllProductTypes();
+        if (resp.success) setProductTypes(resp.data);
+      } finally {
+        setLoading(false);
+      }
+    } catch {
       toast.error('Помилка створення типу продукту');
     }
-  };
+  }, [productTypeData, editingProductType, resetForm]);
 
-  const handleEdit = (productType: TProductType) => {
-    setEditingProductType(productType);
-    setProductTypeData({
-      name: productType.name,
-      width: productType.dimension.width.toString(),
-      height: productType.dimension.height.toString(),
-      weight: productType.dimension.weight.toString(),
-      length: productType.dimension.length.toString(),
-    });
-    setShowCreateForm(true);
-  };
-
-  const handleDelete = async (productTypeId: number) => {
-    if (confirm('Ви впевнені, що хочете видалити цей тип продукту?')) {
-      // TODO: Implement delete product type API call
-      toast.error('Функція видалення поки не реалізована');
-    }
-  };
-
-  const handleCancel = () => {
-    setShowCreateForm(false);
-    setProductTypeData({
-      name: '',
-      width: '',
-      height: '',
-      weight: '',
-      length: '',
-    });
-    setEditingProductType(null);
-  };
+  const handleDelete = useCallback(async (_id: number) => {
+    toast.error('Функція видалення поки не реалізована');
+  }, []);
 
   return (
     <RubikLoadable loading={loading} fullscreen dim="rgba(255,255,255,.6)" wobble size={160}>
       <div className="space-y-6">
+        {/* Toolbar */}
         <div className="flex justify-between items-center">
-          <Text.Header>Управління типами продуктів</Text.Header>
-          <Button 
-            variant="primary" 
-            onClick={() => {
-              setShowCreateForm(true);
-              setEditingProductType(null);
-              setProductTypeData({
-                name: '',
-                width: '',
-                height: '',
-                weight: '',
-                length: '',
-              });
-            }}
-          >
+          <div>
+            <Text.Header>Управління типами продуктів</Text.Header>
+            <Text.Span className="text-gray-500">Створення та редагування</Text.Span>
+          </div>
+          <Button onClick={() => { resetForm(); setShowCreateForm(true); }}>
             Додати тип продукту
           </Button>
         </div>
 
+        {/* Form (memoized, not remounted on each keystroke) */}
         {showCreateForm && (
-          <div className="bg-gray-50 p-6 rounded-lg">
-            <div className="flex justify-between items-center mb-4">
-              <Text.Header className="text-lg">
-                {editingProductType ? 'Редагувати тип продукту' : 'Створити новий тип продукту'}
-              </Text.Header>
-              <Button 
-                variant="secondary" 
-                onClick={handleCancel}
-              >
-                Скасувати
-              </Button>
-            </div>
-            
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Назва типу продукту
-                  </label>
-                  <Input
-                    name="name"
-                    value={productTypeData.name}
-                    onChange={handleInputChange}
-                    placeholder="Введіть назву типу продукту"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Ширина (мм)
-                  </label>
-                  <Input
-                    name="width"
-                    type="number"
-                    step="0.1"
-                    value={productTypeData.width}
-                    onChange={handleInputChange}
-                    placeholder="0.1"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Висота (мм)
-                  </label>
-                  <Input
-                    name="height"
-                    type="number"
-                    step="0.1"
-                    value={productTypeData.height}
-                    onChange={handleInputChange}
-                    placeholder="0.1"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Довжина (мм)
-                  </label>
-                  <Input
-                    name="length"
-                    type="number"
-                    step="0.1"
-                    value={productTypeData.length}
-                    onChange={handleInputChange}
-                    placeholder="0.1"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Вага (кг)
-                  </label>
-                  <Input
-                    name="weight"
-                    type="number"
-                    step="0.001"
-                    value={productTypeData.weight}
-                    onChange={handleInputChange}
-                    placeholder="0.001"
-                    required
-                  />
-                </div>
-              </div>
-              
-              <div className="flex gap-4">
-                <Button type="submit" variant="primary">
-                  {editingProductType ? 'Оновити' : 'Створити'}
-                </Button>
-                <Button 
-                  type="button" 
-                  variant="secondary" 
-                  onClick={handleCancel}
-                >
-                  Скасувати
-                </Button>
-              </div>
-            </form>
-          </div>
+          <ProductTypeForm
+            data={productTypeData}
+            setData={setProductTypeData}
+            onSubmit={handleSubmit}
+            onCancel={handleCancel}
+            editing={!!editingProductType}
+          />
         )}
 
-        <div className="bg-white rounded-lg shadow overflow-hidden">
+        {/* Table */}
+        <div className="bg-white rounded-2xl shadow-card overflow-hidden border border-secondary-100">
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+            <table className="min-w-full divide-y divide-gray-100">
+              <thead className="bg-gray-50/80">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    ID
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Назва
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Розміри (мм)
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Вага (кг)
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Дії
-                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600">ID</th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600">Назва</th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600">Розміри (мм)</th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600">Вага (кг)</th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600">Дії</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {productTypes.map((productType) => (
-                  <tr key={productType.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {productType.id}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {productType.name}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {productType.dimension.width} × {productType.dimension.length} × {productType.dimension.height}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {productType.dimension.weight}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex gap-2">
-                        <Button
-                          variant="secondary"
-                          className="text-xs px-3 py-1"
-                          onClick={() => handleEdit(productType)}
-                        >
-                          Редагувати
-                        </Button>
-                        <Button
-                          variant="secondary"
-                          className="text-xs px-3 py-1 text-red-600 hover:text-red-800"
-                          onClick={() => handleDelete(productType.id)}
-                        >
-                          Видалити
-                        </Button>
-                      </div>
+              <tbody className="bg-white divide-y divide-gray-100">
+                {productTypes.map((t) => {
+                  const d = (t as any)?.dimension || {};
+                  return (
+                    <tr key={t.id} className="hover:bg-gray-50/60">
+                      <td className="px-6 py-4 text-sm text-gray-900">{t.id}</td>
+                      <td className="px-6 py-4 text-sm font-medium text-gray-900">{t.name}</td>
+                      <td className="px-6 py-4 text-sm text-gray-700">
+                        {(d.width ?? '—')} × {(d.length ?? '—')} × {(d.height ?? '—')}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-700">{d.weight ?? '—'}</td>
+                      <td className="px-6 py-4">
+                        <div className="flex gap-2">
+                          <Button variant="secondary" className="text-xs px-3 py-1" onClick={() => handleEdit(t)}>
+                            Редагувати
+                          </Button>
+                          <Button
+                            variant="secondary"
+                            className="text-xs px-3 py-1 text-red-600 hover:text-white hover:bg-red-600 hover:border-red-600"
+                            onClick={() => handleDelete(t.id)}
+                          >
+                            Видалити
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+                {productTypes.length === 0 && (
+                  <tr>
+                    <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
+                      Типи продуктів не знайдено
                     </td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>
-          
-          {productTypes.length === 0 && (
-            <div className="text-center py-8 text-gray-500">
-              Типи продуктів не знайдено
-            </div>
-          )}
         </div>
       </div>
     </RubikLoadable>
